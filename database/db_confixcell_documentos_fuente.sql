@@ -31,6 +31,7 @@ documento_transaccion_id INT);
 
 CREATE TABLE entrada_efectivo (
 id INT PRIMARY KEY NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 documento_fuente_id INT NOT NULL,
 valor DECIMAL(20,2) NOT NULL);
 
@@ -59,6 +60,7 @@ saldo DECIMAL(20,2) NOT NULL DEFAULT 0);
 
 CREATE TABLE entrada_bien_consumo (
 id INT PRIMARY KEY NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 documento_fuente_id INT NOT NULL,
 almacen_uuid VARCHAR(50) NOT NULL,
 bien_consumo_uuid VARCHAR(50) NOT NULL,
@@ -82,6 +84,7 @@ salida_produccion_bien_id INT NOT NULL);
 
 CREATE TABLE entrada_bien_capital (
 id INT PRIMARY KEY NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 documento_fuente_id INT NOT NULL,
 almacen_uuid VARCHAR(50) NOT NULL,
 bien_capital_uuid VARCHAR(50) NOT NULL);
@@ -109,6 +112,7 @@ servicio_uuid VARCHAR(50) NOT NULL);
 
 CREATE TABLE entrada_servicio_detalle (
 id INT PRIMARY KEY NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 entrada_servicio_id INT NOT NULL,
 f_inicio DATETIME NOT NULL,
 f_final DATETIME,
@@ -116,6 +120,7 @@ valor DECIMAL(20,2) NOT NULL DEFAULT 0);
 
 CREATE TABLE salida_efectivo (
 id INT PRIMARY KEY NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 documento_fuente_id INT NOT NULL,
 valor DECIMAL(20,2) NOT NULL DEFAULT 0);
 
@@ -140,6 +145,7 @@ saldo DECIMAL(20,2) NOT NULL DEFAULT 0);
 
 CREATE TABLE salida_bien_consumo (
 id INT PRIMARY KEY NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 documento_fuente_id INT NOT NULL,
 almacen_uuid VARCHAR(50) NOT NULL,
 bien_consumo_uuid VARCHAR(50) NOT NULL,
@@ -147,8 +153,7 @@ cant DECIMAL(20,2) NOT NULL DEFAULT 0,
 precio_uni DECIMAL(20,2) NOT NULL DEFAULT 0);
 
 CREATE TABLE salida_bien_consumo_valor_nuevo (
-id INT PRIMARY KEY NOT NULL,
-valor_uni DECIMAL(20,2) NOT NULL DEFAULT 0);
+id INT PRIMARY KEY NOT NULL);
 
 CREATE TABLE salida_bien_consumo_valor_entrada (
 id INT PRIMARY KEY NOT NULL,
@@ -156,12 +161,14 @@ entrada_bien_consumo_id INT NOT NULL);
 
 CREATE TABLE salida_bien_capital_fijo (
 id INT PRIMARY KEY NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 documento_fuente_id INT NOT NULL,
 entrada_bien_capital_id INT NOT NULL,
 valor_final DECIMAL(20,2) NOT NULL DEFAULT 0);
 
 CREATE TABLE salida_bien_capital_temporal (
 id INT PRIMARY KEY NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 documento_fuente_id INT NOT NULL,
 bien_capital_uuid VARCHAR(50) NOT NULL,
 f_inicio DATETIME NOT NULL,
@@ -175,6 +182,7 @@ servicio_uuid VARCHAR(50) NOT NULL);
 
 CREATE TABLE salida_servicio_detalle (
 id INT PRIMARY KEY NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 salida_servicio_id INT NOT NULL,
 f_inicio DATETIME NOT NULL,
 f_final DATETIME,
@@ -307,6 +315,7 @@ problema VARCHAR(500));
 
 CREATE TABLE nv_servicio_reparacion_recurso_servicio (
 id INT PRIMARY KEY NOT NULL,
+uuid VARCHAR(50) NOT NULL,
 nv_servicio_reparacion_id INT NOT NULL,
 nv_categoria_reparacion_id INT NOT NULL,
 descripcion VARCHAR(100),
@@ -316,6 +325,7 @@ precio DECIMAL(20,2) NOT NULL DEFAULT 0);
 
 CREATE TABLE nv_servicio_reparacion_recurso_bien_consumo (
 id INT PRIMARY KEY NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 nv_servicio_reparacion_id INT NOT NULL,
 almacen_uuid VARCHAR(50) NOT NULL,
 bien_consumo_uuid VARCHAR(50) NOT NULL,
@@ -361,15 +371,16 @@ f_inicio DATETIME NOT NULL,
 f_final DATETIME);
 
 CREATE TABLE salida_produccion_bien_recurso_bien_consumo (
-id INT NOT NULL,
+id INT PRIMARY KEY NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 salida_produccion_bien_actividad_id INT NOT NULL,
 bien_consumo_uuid VARCHAR(50) NOT NULL,
 almacen_uuid VARCHAR(50) NOT NULL,
-cant DECIMAL(20,2) NOT NULL DEFAULT 0,
-PRIMARY KEY (id,salida_produccion_bien_actividad_id));
+cant DECIMAL(20,2) NOT NULL DEFAULT 0);
 
 CREATE TABLE salids_produccion_servicio_bien_consumo (
 id INT PRIMARY KEY NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 salida_produccion_servicio_actividad_id INT NOT NULL,
 bien_consumo_uuid VARCHAR(50) NOT NULL,
 almacen_uuid VARCHAR(50) NOT NULL,

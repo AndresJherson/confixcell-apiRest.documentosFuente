@@ -38,9 +38,6 @@ export class DocumentoFuenteService implements OnModuleInit {
 
     async executeCreateCollection( s: SessionData, documentosFuente: DocumentoFuente[] )
     {
-        const establecimientoPreset = await this.dbPresetService.getObjectByTarget( s, new DbPreset({ target: 'documento_fuente.establecimiento_uuid' }) );
-        if ( !establecimientoPreset.valor ) throw new InternalServerErrorException( `${establecimientoPreset.titulo} NO ESTABLECIDO` );
-
         await DocumentoFuenteEntity.bulkCreate( documentosFuente.map( doc => ({
             id: doc.id,
             uuid: doc.uuid,

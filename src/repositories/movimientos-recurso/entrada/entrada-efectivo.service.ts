@@ -1,5 +1,5 @@
 import { EntradaEfectivo, EntradaEfectivoContado, EntradaEfectivoCredito, NotaTransaccionEntradaCredito, NotaVentaEntradaEfectivo } from '@confixcell/modelos';
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Op } from 'sequelize';
 import { NteCreditoEntity } from 'src/entities/DocumentosFuente/DocumentosTransaccion/NotaTransaccionEntrada/NteCreditoEntity';
 import { NteCuotaEntity } from 'src/entities/DocumentosFuente/DocumentosTransaccion/NotaTransaccionEntrada/NteCuotaEntity';
@@ -15,67 +15,88 @@ export class EntradaEfectivoService {
 
     async executeCreateCollection( s: SessionData, entradasEfectivo: EntradaEfectivo[] )
     {
-        await EntradaEfectivoEntity.bulkCreate( entradasEfectivo.map( ent => ({
-            id: ent.id,
-            documentoFuenteId: ent.documentoFuente?.id,
-            importeValorNeto: ent.importeValorNeto,
-            entradaEfectivoContadoEntity: ent instanceof EntradaEfectivoContado ? new EntradaEfectivoContadoEntity({
+        const transaction = s.transaction;
+        
+        await EntradaEfectivoEntity.bulkCreate(
+            entradasEfectivo.map(ent => ({
                 id: ent.id,
-                medioTransferenciaId: ent.medioTransferencia?.id
-            }) : undefined,
-            entradaEfectivoCreditoEntity: ent instanceof EntradaEfectivoCredito ? new EntradaEfectivoCreditoEntity({
-                id: ent.id,
-                tasaInteresDiario: ent.tasaInteresDiario,
-                cuotasEntity: ent.cuotas.map( cuota => new EntradaEfectivoCuotaEntity({
-                    id: cuota.id,
-                    entradaEfectivoCreditoId: cuota.credito?.id,
-                    numero: cuota.numero,
-                    fechaInicio: cuota.fechaInicio,
-                    fechaVencimiento: cuota.fechaVencimiento,
-                    importeCuota: cuota.importeCuota,
-                    importeAmortizacion: cuota.importeAmortizacion,
-                    importeInteres: cuota.importeInteres,
-                    importeSaldo: cuota.importeSaldo
-                }) )
-            }) : undefined,
-            nteCreditoEntity: ent instanceof NotaTransaccionEntradaCredito ? new NteCreditoEntity({
-                id: ent.id,
-                notaTransaccionEntradaId: ent.documentoFuente?.id,
-                tasaInteresDiario: ent.tasaInteresDiario,
-                nteCuotasEntity: ent.cuotas.map( cuota => new NteCuotaEntity({
-                    id: cuota.id,
-                    nteCreditoId: cuota.credito?.id,
-                    numero: cuota.numero,
-                    fechaInicio: cuota.fechaInicio,
-                    fechaVencimiento: cuota.fechaVencimiento,
-                    importeCuota: cuota.importeCuota,
-                    importeAmortizacion: cuota.importeAmortizacion,
-                    importeInteres: cuota.importeInteres,
-                    importeSaldo: cuota.importeSaldo
-                }) )
-            }) : undefined,
-            nvEntradaEfectivoEntity: ent instanceof NotaVentaEntradaEfectivo ? new NvEntradaEfectivoEntity({
-                id: ent.id,
-                notaVentaId: ent.documentoFuente?.id,
-                numero: ent.numero,
-                fecha: ent.fecha,
-                medioTransferenciaId: ent.medioTransferencia?.id
-            }) : undefined
-        }) ), {
-            transaction: s.transaction,
-            include: [
-                EntradaEfectivoContadoEntity,
-                {
-                    model: EntradaEfectivoCreditoEntity,
-                    include: [EntradaEfectivoCuotaEntity]
-                },
-                {
-                    model: NteCreditoEntity,
-                    include: [NteCuotaEntity]
-                },
-                NvEntradaEfectivoEntity
-            ]
-        } )
+                uuid: ent.uuid,
+                documentoFuenteId: ent.documentoFuente?.id,
+                importeValorNeto: ent.importeValorNeto
+            })),
+            { transaction }
+        );
+        
+
+        for (let i = 0; i < entradasEfectivo.length; i++) {
+            const ent = entradasEfectivo[i];
+            
+            if (ent instanceof EntradaEfectivoContado) {
+                await EntradaEfectivoContadoEntity.create({
+                    id: ent.id,
+                    medioTransferenciaId: ent.medioTransferencia?.id
+                }, { transaction });
+            }
+            else if (ent instanceof EntradaEfectivoCredito) {
+                await EntradaEfectivoCreditoEntity.create({
+                    id: ent.id,
+                    tasaInteresDiario: ent.tasaInteresDiario
+                }, { transaction });
+                
+                if (ent.cuotas.length) {
+                    await EntradaEfectivoCuotaEntity.bulkCreate(
+                        ent.cuotas.map(cuota => ({
+                            id: cuota.id,
+                            entradaEfectivoCreditoId: ent.id,
+                            numero: cuota.numero,
+                            fechaInicio: cuota.fechaInicio,
+                            fechaVencimiento: cuota.fechaVencimiento,
+                            importeCuota: cuota.importeCuota,
+                            importeAmortizacion: cuota.importeAmortizacion,
+                            importeInteres: cuota.importeInteres,
+                            importeSaldo: cuota.importeSaldo
+                        })),
+                        { transaction }
+                    );
+                }
+            }
+            else if (ent instanceof NotaTransaccionEntradaCredito) {
+                await NteCreditoEntity.create({
+                    id: ent.id,
+                    notaTransaccionEntradaId: ent.documentoFuente?.id,
+                    tasaInteresDiario: ent.tasaInteresDiario
+                }, { transaction });
+                
+                if (ent.cuotas.length) {
+                    await NteCuotaEntity.bulkCreate(
+                        ent.cuotas.map(cuota => ({
+                            id: cuota.id,
+                            nteCreditoId: ent.id,
+                            numero: cuota.numero,
+                            fechaInicio: cuota.fechaInicio,
+                            fechaVencimiento: cuota.fechaVencimiento,
+                            importeCuota: cuota.importeCuota,
+                            importeAmortizacion: cuota.importeAmortizacion,
+                            importeInteres: cuota.importeInteres,
+                            importeSaldo: cuota.importeSaldo
+                        })),
+                        { transaction }
+                    );
+                }
+            }
+            else if (ent instanceof NotaVentaEntradaEfectivo) {
+                await NvEntradaEfectivoEntity.create({
+                    id: ent.id,
+                    notaVentaId: ent.documentoFuente?.id,
+                    numero: ent.numero,
+                    fecha: ent.fecha,
+                    medioTransferenciaId: ent.medioTransferencia?.id
+                }, { transaction });
+            }
+            else {
+                throw new InternalServerErrorException( 'Tipo de entrada de efectivo invalido' )
+            }
+        }
     }
 
 

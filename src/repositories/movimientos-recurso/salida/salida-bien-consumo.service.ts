@@ -1,5 +1,5 @@
 import { NotaVentaSalidaBienConsumo, SalidaBienConsumo, SalidaBienConsumoValorEntrada, SalidaBienConsumoValorNuevo } from '@confixcell/modelos';
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Op } from 'sequelize';
 import { NvSalidaBienConsumoEntity } from 'src/entities/DocumentosFuente/DocumentosTransaccion/NotaVenta/SalidaBienConsumo/NvSalidaBienConsumoEntity';
 import { SalidaBienConsumoEntity } from 'src/entities/MovimientosRecurso/Salida/SalidaBienConsumo/SalidaBienConsumoEntity';
@@ -10,36 +10,47 @@ import { SessionData } from 'src/utils/interfaces';
 @Injectable()
 export class SalidaBienConsumoService {
 
-    async executeCreateCollection( s: SessionData, salidasBienConsumo: SalidaBienConsumo[] )
+    async executeCreateCollection(s: SessionData, salidasBienConsumo: SalidaBienConsumo[])
     {
-        await SalidaBienConsumoEntity.bulkCreate( salidasBienConsumo.map( sal => ({
-            id: sal.id,
-            documentoFuenteId: sal.documentoFuente?.id,
-            almacenUuid: sal.almacen?.uuid,
-            bienConsumoUuid: sal.bienConsumo?.uuid,
-            cantidad: sal.cantidad,
-            importePrecioUnitario: sal.importePrecioUnitario,
-            salidaBienConsumoValorNuevoEntity: sal instanceof SalidaBienConsumoValorNuevo ? new SalidaBienConsumoValorNuevoEntity({
+        const transaction = s.transaction;
+        
+        await SalidaBienConsumoEntity.bulkCreate(
+            salidasBienConsumo.map(sal => ({
                 id: sal.id,
-                importeValorUnitario: sal.importeValorUnitario
-            }) : undefined,
-            salidaBienConsumoValorSalidaEntity: sal instanceof SalidaBienConsumoValorEntrada ? new SalidaBienConsumoValorEntradaEntity({
-                id: sal.id,
-                entradaBienConsumoId: sal.entrada?.id
-            }) : undefined,
-            nvSalidaBienConsumoEntity: sal instanceof NotaVentaSalidaBienConsumo ? new NvSalidaBienConsumoEntity({
-                id: sal.id,
-                notaVentaId: sal.documentoFuente?.id,
-                importeDescuento: sal.importeDescuento
-            }) : undefined
-        }) ), {
-            transaction: s.transaction,
-            include: [
-                SalidaBienConsumoValorNuevoEntity,
-                SalidaBienConsumoValorEntradaEntity,
-                NvSalidaBienConsumoEntity
-            ]
-        } )
+                uuid: sal.uuid,
+                documentoFuenteId: sal.documentoFuente?.id,
+                almacenUuid: sal.almacen?.uuid,
+                bienConsumoUuid: sal.bienConsumo?.uuid,
+                cantidadSaliente: sal.cantidadSaliente,
+                importePrecioUnitario: sal.importePrecioUnitario
+            })),
+            { transaction }
+        );
+        
+
+        for (const sal of salidasBienConsumo) {
+            if (sal instanceof SalidaBienConsumoValorNuevo) {
+                await SalidaBienConsumoValorNuevoEntity.create({
+                    id: sal.id
+                }, { transaction });
+            }
+            else if (sal instanceof SalidaBienConsumoValorEntrada) {
+                await SalidaBienConsumoValorEntradaEntity.create({
+                    id: sal.id,
+                    entradaBienConsumoId: sal.entrada?.id
+                }, { transaction });
+            }
+            else if (sal instanceof NotaVentaSalidaBienConsumo) {
+                await NvSalidaBienConsumoEntity.create({
+                    id: sal.id,
+                    notaVentaId: sal.documentoFuente?.id,
+                    importeDescuento: sal.importeDescuento
+                }, { transaction });
+            }
+            else {
+                throw new InternalServerErrorException('Tipo de salida de bien de consumo invalido');
+            }
+        }
     }
 
 

@@ -8,6 +8,9 @@ export class NvServicioReparacionRecursoServicioEntity extends Model<NvServicioR
     @Column({ type: DataType.INTEGER, primaryKey: true })
     declare id: number;
 
+    @Column({ type: DataType.STRING(50), allowNull: false, unique: true })
+    declare uuid: string;
+
     @ForeignKey(() => NvServicioReparacionEntity)
     @Column({ type: DataType.INTEGER, allowNull: false, field: 'nv_servicio_reparacion_id' })
     declare nvServicioReparacionId: number;

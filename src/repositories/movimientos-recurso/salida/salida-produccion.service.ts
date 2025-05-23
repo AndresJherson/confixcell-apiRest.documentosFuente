@@ -30,6 +30,7 @@ export class SalidaProduccionService {
                     problema: sal.problema,
                     nvServicioReparacionRecursosBienConsumoEntity: sal.recursosBienConsumo.map( recurso => new NvServicioReparacionRecursoBienConsumoEntity({
                         id: recurso.id,
+                        uuid: recurso.uuid,
                         nvServicioReparacionId: recurso.salidaProduccion?.id,
                         almacenUuid: recurso.almacen?.uuid,
                         bienConsumoUuid: recurso.bienConsumo?.uuid,
@@ -39,6 +40,7 @@ export class SalidaProduccionService {
                     }) ),
                     nvServicioReparacionRecursosServicioEntity: sal.recursosServicio.map( recurso => new NvServicioReparacionRecursoServicioEntity({
                         id: recurso.id,
+                        uuid: recurso.uuid,
                         nvServicioReparacionId: recurso.salidaProduccion?.id,
                         nvCategoriaReparacionId: recurso.categoriaReparacion?.id,
                         descripcion: recurso.descripcion,

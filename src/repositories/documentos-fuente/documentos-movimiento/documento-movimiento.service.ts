@@ -50,7 +50,9 @@ export class DocumentoMovimientoService implements OnModuleInit {
         await DocumentoMovimientoEntity.bulkCreate( documentosMovimiento.map( doc => ({
             id: doc.id,
             documentoTransaccionId: doc.documentoTransaccion?.id
-        }) ) );
+        }), ), {
+            transaction: s.transaction
+        } );
     }
 
 

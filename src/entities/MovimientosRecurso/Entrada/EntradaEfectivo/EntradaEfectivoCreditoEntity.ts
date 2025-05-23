@@ -25,5 +25,5 @@ export class EntradaEfectivoCreditoEntity extends Model<EntradaEfectivoCreditoEn
     declare entradaEfectivoEntity?: EntradaEfectivoEntity;
     
     @HasMany(() => EntradaEfectivoCuotaEntity)
-    declare cuotasEntity?: EntradaEfectivoCuotaEntity[];
+    declare entradaEfectivoCuotasEntity?: EntradaEfectivoCuotaEntity[];
 }

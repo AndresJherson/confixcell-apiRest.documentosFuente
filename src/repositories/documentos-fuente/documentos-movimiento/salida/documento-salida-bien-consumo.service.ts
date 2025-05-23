@@ -92,7 +92,10 @@ export class DocumentoSalidaBienConsumoService {
 
         documentoSalidaBienConsumo.set({
             uuid: v4(),
-            codigoSerie: `MOV${dateTimeEmision.toFormat( 'yyyy' )}`
+            codigoSerie: `MOV${dateTimeEmision.toFormat( 'yyyy' )}`,
+            salidas: documentoSalidaBienConsumo.salidas.map( sal => sal.set({
+                uuid: v4()
+            }) )
         });
 
         await this.setCode( s, [ documentoSalidaBienConsumo ] );
@@ -127,92 +130,95 @@ export class DocumentoSalidaBienConsumoService {
 
 
     query = `
+select json_object(
+    'type', 'DocumentoSalidaBienConsumo',
+    'id', documento_fuente.id,
+    'uuid', documento_fuente.uuid,
+    'codigoSerie', documento_fuente.cod_serie,
+    'codigoNumero', documento_fuente.cod_numero,
+    'fechaEmision', concat(documento_fuente.f_emision,'Z'),
+    'fechaAnulacion', concat(documento_fuente.f_anulacion,'Z'),
+    'concepto', documento_fuente.concepto,
+    'importeNeto', documento_fuente.importe_neto,
+    'usuario', json_object( 'uuid', documento_fuente.usuario_uuid ),
+    'fechaCreacion', concat(documento_fuente.f_creacion,'Z'),
+    'fechaActualizacion', concat(documento_fuente.f_actualizacion,'Z'),
+    'documentoTransaccion', (
         select json_object(
-            'type', 'DocumentoSalidaBienConsumo',
-            'id', documento_fuente.id,
-            'uuid', documento_fuente.uuid,
-            'codigoSerie', documento_fuente.cod_serie,
-            'codigoNumero', documento_fuente.cod_numero,
-            'fechaEmision', documento_fuente.f_emision,
-            'fechaAnulacion', documento_fuente.f_anulacion,
-            'importeNeto', documento_fuente.importe_neto,
-            'establecimiento', json_object( 'uuid', documento_fuente.establecimiento_uuid ),
-            'usuario', json_object( 'uuid', documento_fuente.usuario_uuid ),
-            'concepto', documento_movimiento.concepto,
-            'documentoTransaccion', (
-                select json_object(
-                    'id', df.id,
-                    'uuid', df.uuid,
-                    'codigoSerie', df.cod_serie,
-                    'codigoNumero', df.cod_numero,
-                    'fechaCreacion', documento_transaccion.f_creacion,
-                    'fechaActualizacion', documento_transaccion.f_actualizacion,
-                    'fechaEmision', df.f_emision,
-                    'fechaAnulacion', df.f_anulacion,
-                    'importeNeto', df.importe_neto,
-                    'establecimiento', json_object( 'uuid', df.establecimiento_uuid ),
-                    'usuario', json_object( 'uuid', df.usuario_uuid ),
-                    'concepto', documento_transaccion.concepto
-                )
-                from documento_transaccion
-                left join documento_fuente df on df.id = documento_transaccion.id
-                where documento_transaccion.id = documento_movimiento.documento_transaccion_id
-            ),
-
-            'notas', (
-                select json_arrayagg(json_object(
-                    'id', nota.id,
-                    'fecha', nota.fecha,
-                    'descripcion', nota.descripcion,
-                    'usuario', json_object( 'uuid', nota.usuario_uuid )
-                )) as json
-                from nota
-                where nota.documento_fuente_id = documento_fuente.id
-            ),
-
-            'salidas', (
-                select json_arrayagg(cte_salida_bien_consumo.json)
-                from (
-
-                    select 
-                        salida_bien_consumo.documento_fuente_id as documento_fuente_id,
-                        json_object(
-                            'type', 'SalidaBienConsumoValorNuevo',
-                            'id', salida_bien_consumo.id,
-                            'almacen', json_object( 'uuid', salida_bien_consumo.almacen_uuid ),
-                            'bienConsumo', json_object( 'uuid', salida_bien_consumo.bien_consumo_uuid ),
-                            'cantidad', salida_bien_consumo.cant,
-                            'importePrecioUnitario', salida_bien_consumo.precio_uni
-                        ) as json
-                    from salida_bien_consumo_valor_nuevo
-                    left join salida_bien_consumo on salida_bien_consumo.id = salida_bien_consumo_valor_nuevo.id
-
-                    union all
-
-                    select 
-                        salida_bien_consumo.documento_fuente_id as documento_fuente_id,
-                        json_object(
-                            'type', 'SalidaBienConsumoValorEntrada',
-                            'id', salida_bien_consumo.id,
-                            'almacen', json_object( 'uuid', salida_bien_consumo.almacen_uuid ),
-                            'bienConsumo', json_object( 'uuid', salida_bien_consumo.bien_consumo_uuid ),
-                            'cantidad', salida_bien_consumo.cant,
-                            'importePrecioUnitario', salida_bien_consumo.precio_uni,
-                            'entrada', json_object( 'id', salida_bien_consumo_valor_entrada.entrada_bien_consumo_id )
-                        ) as json
-                    from salida_bien_consumo_valor_entrada
-                    left join salida_bien_consumo on salida_bien_consumo.id = salida_bien_consumo_valor_entrada.id
-
-                ) as cte_salida_bien_consumo
-                where cte_salida_bien_consumo.documento_fuente_id = documento_movimiento.id
-            )
-        ) as json
-        from documento_movimiento
-        left join documento_fuente on documento_fuente.id = documento_movimiento.id
-        where exists (
-            select 1
-            from salida_bien_consumo
-            where salida_bien_consumo.documento_fuente_id = documento_movimiento.id
+            'id', df.id,
+            'uuid', df.uuid,
+            'codigoSerie', df.cod_serie,
+            'codigoNumero', df.cod_numero,
+            'fechaCreacion', concat(df.f_creacion,'Z'),
+            'fechaActualizacion', concat(df.f_actualizacion,'Z'),
+            'fechaEmision', concat(df.f_emision,'Z'),
+            'fechaAnulacion', concat(df.f_anulacion,'Z'),
+            'concepto', df.concepto,
+            'importeNeto', df.importe_neto,
+            'usuario', json_object( 'uuid', df.usuario_uuid ),
+            'fechaCreacion', concat(df.f_creacion,'Z'),
+            'fechaActualizacion', concat(df.f_actualizacion,'Z')
         )
+        from documento_transaccion
+        left join documento_fuente df on df.id = documento_transaccion.id
+        where documento_transaccion.id = documento_movimiento.documento_transaccion_id
+    ),
+    'notas', (
+        select json_arrayagg(json_object(
+            'id', nota.id,
+            'fecha', nota.fecha,
+            'descripcion', nota.descripcion,
+            'usuario', json_object( 'uuid', nota.usuario_uuid )
+        )) as json
+        from nota
+        where nota.documento_fuente_id = documento_fuente.id
+    ),
+
+    'salidas', (
+        select json_arrayagg(cte_salida_bien_consumo.json)
+        from (
+
+            select 
+                salida_bien_consumo.documento_fuente_id as documento_fuente_id,
+                json_object(
+                    'type', 'SalidaBienConsumoValorNuevo',
+                    'id', salida_bien_consumo.id,
+                    'uuid', salida_bien_consumo.uuid,
+                    'almacen', json_object( 'uuid', salida_bien_consumo.almacen_uuid ),
+                    'bienConsumo', json_object( 'uuid', salida_bien_consumo.bien_consumo_uuid ),
+                    'cantidadSaliente', salida_bien_consumo.cant,
+                    'importePrecioUnitario', salida_bien_consumo.precio_uni
+                ) as json
+            from salida_bien_consumo_valor_nuevo
+            left join salida_bien_consumo on salida_bien_consumo.id = salida_bien_consumo_valor_nuevo.id
+
+            union all
+
+            select 
+                salida_bien_consumo.documento_fuente_id as documento_fuente_id,
+                json_object(
+                    'type', 'SalidaBienConsumoValorEntrada',
+                    'id', salida_bien_consumo.id,
+                    'uuid', salida_bien_consumo.uuid,
+                    'almacen', json_object( 'uuid', salida_bien_consumo.almacen_uuid ),
+                    'bienConsumo', json_object( 'uuid', salida_bien_consumo.bien_consumo_uuid ),
+                    'cantidadSaliente', salida_bien_consumo.cant,
+                    'importePrecioUnitario', salida_bien_consumo.precio_uni,
+                    'entrada', json_object( 'id', salida_bien_consumo_valor_entrada.entrada_bien_consumo_id )
+                ) as json
+            from salida_bien_consumo_valor_entrada
+            left join salida_bien_consumo on salida_bien_consumo.id = salida_bien_consumo_valor_entrada.id
+
+        ) as cte_salida_bien_consumo
+        where cte_salida_bien_consumo.documento_fuente_id = documento_movimiento.id
+    )
+) as json
+from documento_movimiento
+left join documento_fuente on documento_fuente.id = documento_movimiento.id
+where exists (
+    select 1
+    from salida_bien_consumo
+    where salida_bien_consumo.documento_fuente_id = documento_movimiento.id
+)
     `;
 }

@@ -54,7 +54,9 @@ export class DocumentoTransaccionService {
             fechaCreacion: doc.fechaCreacion,
             fechaActualizacion: doc.fechaActualizacion,
             concepto: doc.concepto
-        }) ) );
+        }) ), {
+            transaction: s.transaction
+        } );
 
         await this.documentoEntradaEfectivoService.executeCreateCollection( s, documentosTransaccion.flatMap( doc => doc.docsEntradaEfectivo ) );
         await this.documentoEntradaBienConsumoService.executeCreateCollection( s, documentosTransaccion.flatMap( doc => doc.docsEntradaBienConsumo ) );

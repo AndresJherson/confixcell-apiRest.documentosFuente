@@ -11,14 +11,6 @@ export class SalidaBienConsumoValorNuevoEntity extends Model<SalidaBienConsumoVa
     })
     declare id: number;
     
-    @Column({
-        type: DataType.DECIMAL(20, 2),
-        allowNull: false,
-        defaultValue: 0,
-        field: 'valor_uni'
-    })
-    declare importeValorUnitario: number;
-    
 
     @BelongsTo(() => SalidaBienConsumoEntity)
     declare salidaBienConsumoEntity?: SalidaBienConsumoEntity;

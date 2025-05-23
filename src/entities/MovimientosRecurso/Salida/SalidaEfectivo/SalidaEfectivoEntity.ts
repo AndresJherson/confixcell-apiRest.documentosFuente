@@ -12,6 +12,13 @@ export class SalidaEfectivoEntity extends Model<SalidaEfectivoEntity, Partial<Sa
         allowNull: false
     })
     declare id: number;
+
+    @Column({
+        type: DataType.STRING(50),
+        allowNull: false,
+        unique: true
+    })
+    declare uuid: string;
     
     @ForeignKey(() => DocumentoFuenteEntity)
     @Column({

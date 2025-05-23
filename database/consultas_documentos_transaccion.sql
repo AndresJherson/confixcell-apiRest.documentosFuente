@@ -8,12 +8,13 @@ select json_object(
     'uuid', df.uuid,
     'codigoSerie', df.cod_serie,
     'codigoNumero', df.cod_numero,
-    'fechaEmision', df.f_emision,
-    'fechaAnulacion', df.f_anulacion,
+    'fechaEmision', concat(df.f_emision,'Z'),
+    'fechaAnulacion', concat(df.f_anulacion,'Z'),
+    'concepto', df.concepto,
     'importeNeto', df.importe_neto,
-    'establecimiento', json_object( 'uuid', df.establecimiento_uuid ),
     'usuario', json_object( 'uuid', df.usuario_uuid ),
-
+    'fechaCreacion', concat(df.f_creacion,'Z'),
+    'fechaActualizacion', concat(df.f_actualizacion,'Z'),
     'notas', (
         select json_arrayagg(json_object(
             'id', nota.id,
@@ -24,11 +25,6 @@ select json_object(
         from nota
         where nota.documento_fuente_id = df.id
     ),
-
-    'fechaCreacion', documento_transaccion.f_creacion,
-    'fechaActualizacion', documento_transaccion.f_actualizacion,
-    'concepto', documento_transaccion.concepto,
-
     'docsEntradaEfectivo', (
         select json_arrayagg(json_object(
             'type', 'DocumentoEntradaEfectivo',
@@ -36,32 +32,33 @@ select json_object(
             'uuid', documento_fuente.uuid,
             'codigoSerie', documento_fuente.cod_serie,
             'codigoNumero', documento_fuente.cod_numero,
-            'fechaEmision', documento_fuente.f_emision,
-            'fechaAnulacion', documento_fuente.f_anulacion,
+            'fechaEmision', concat(documento_fuente.f_emision,'Z'),
+            'fechaAnulacion', concat(documento_fuente.f_anulacion,'Z'),
+            'concepto', documento_fuente.concepto,
             'importeNeto', documento_fuente.importe_neto,
-            'establecimiento', json_object( 'uuid', documento_fuente.establecimiento_uuid ),
             'usuario', json_object( 'uuid', documento_fuente.usuario_uuid ),
-            'concepto', documento_movimiento.concepto,
+            'fechaCreacion', concat(documento_fuente.f_creacion,'Z'),
+            'fechaActualizacion', concat(documento_fuente.f_actualizacion,'Z'),
             'documentoTransaccion', (
                 select json_object(
                     'id', df.id,
                     'uuid', df.uuid,
                     'codigoSerie', df.cod_serie,
                     'codigoNumero', df.cod_numero,
-                    'fechaCreacion', documento_transaccion.f_creacion,
-                    'fechaActualizacion', documento_transaccion.f_actualizacion,
-                    'fechaEmision', df.f_emision,
-                    'fechaAnulacion', df.f_anulacion,
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z'),
+                    'fechaEmision', concat(df.f_emision,'Z'),
+                    'fechaAnulacion', concat(df.f_anulacion,'Z'),
+                    'concepto', df.concepto,
                     'importeNeto', df.importe_neto,
-                    'establecimiento', json_object( 'uuid', df.establecimiento_uuid ),
                     'usuario', json_object( 'uuid', df.usuario_uuid ),
-                    'concepto', documento_transaccion.concepto
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z')
                 )
                 from documento_transaccion
                 left join documento_fuente df on df.id = documento_transaccion.id
                 where documento_transaccion.id = documento_movimiento.documento_transaccion_id
             ),
-
             'notas', (
                 select json_arrayagg(json_object(
                     'id', nota.id,
@@ -82,6 +79,7 @@ select json_object(
                         json_object(
                             'type', 'EntradaEfectivoContado',
                             'id', entrada_efectivo.id,
+                            'uuid', entrada_efectivo.uuid,
                             'medioTransferencia', (
                                 select json_object(
                                     'id', medio_transferencia.id,
@@ -102,14 +100,15 @@ select json_object(
                         json_object(
                             'type', 'EntradaEfectivoCredito',
                             'id', entrada_efectivo.id,
+                            'uuid', entrada_efectivo.uuid,
                             'importeValorNeto', entrada_efectivo.valor,
                             'tasaInteresDiario', entrada_efectivo_credito.tasa_interes_diario,
                             'cuotas', (
                                 select json_arrayagg(json_object(
                                     'id', entrada_efectivo_cuota.id,
                                     'numero', entrada_efectivo_cuota.numero,
-                                    'fechaInicio', entrada_efectivo_cuota.f_inicio,
-                                    'fechaVencimiento', entrada_efectivo_cuota.f_vencimiento,
+                                    'fechaInicio', concat(entrada_efectivo_cuota.f_inicio,'Z'),
+                                    'fechaVencimiento', concat(entrada_efectivo_cuota.f_vencimiento,'Z'),
                                     'importeCuota', entrada_efectivo_cuota.cuota,
                                     'importeAmortizacion', entrada_efectivo_cuota.amortizacion,
                                     'importeInteres', entrada_efectivo_cuota.interes,
@@ -135,7 +134,6 @@ select json_object(
         )
         and documento_movimiento.documento_transaccion_id = documento_transaccion.id
     ),
-
     'docsEntradaBienConsumo', (
         select json_arrayagg(json_object(
             'type', 'DocumentoEntradaBienConsumo',
@@ -143,32 +141,33 @@ select json_object(
             'uuid', documento_fuente.uuid,
             'codigoSerie', documento_fuente.cod_serie,
             'codigoNumero', documento_fuente.cod_numero,
-            'fechaEmision', documento_fuente.f_emision,
-            'fechaAnulacion', documento_fuente.f_anulacion,
+            'fechaEmision', concat(documento_fuente.f_emision,'Z'),
+            'fechaAnulacion', concat(documento_fuente.f_anulacion,'Z'),
+            'concepto', documento_fuente.concepto,
             'importeNeto', documento_fuente.importe_neto,
-            'establecimiento', json_object( 'uuid', documento_fuente.establecimiento_uuid ),
             'usuario', json_object( 'uuid', documento_fuente.usuario_uuid ),
-            'concepto', documento_movimiento.concepto,
+            'fechaCreacion', concat(documento_fuente.f_creacion,'Z'),
+            'fechaActualizacion', concat(documento_fuente.f_actualizacion,'Z'),
             'documentoTransaccion', (
                 select json_object(
                     'id', df.id,
                     'uuid', df.uuid,
                     'codigoSerie', df.cod_serie,
                     'codigoNumero', df.cod_numero,
-                    'fechaCreacion', documento_transaccion.f_creacion,
-                    'fechaActualizacion', documento_transaccion.f_actualizacion,
-                    'fechaEmision', df.f_emision,
-                    'fechaAnulacion', df.f_anulacion,
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z'),
+                    'fechaEmision', concat(df.f_emision,'Z'),
+                    'fechaAnulacion', concat(df.f_anulacion,'Z'),
+                    'concepto', df.concepto,
                     'importeNeto', df.importe_neto,
-                    'establecimiento', json_object( 'uuid', df.establecimiento_uuid ),
                     'usuario', json_object( 'uuid', df.usuario_uuid ),
-                    'concepto', documento_transaccion.concepto
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z')
                 )
                 from documento_transaccion
                 left join documento_fuente df on df.id = documento_transaccion.id
                 where documento_transaccion.id = documento_movimiento.documento_transaccion_id
             ),
-
             'notas', (
                 select json_arrayagg(json_object(
                     'id', nota.id,
@@ -189,9 +188,10 @@ select json_object(
                         json_object(
                             'type', 'EntradaBienConsumoValorNuevo',
                             'id', entrada_bien_consumo.id,
+                            'uuid', entrada_bien_consumo.uuid,
                             'almacen', json_object( 'uuid', entrada_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', entrada_bien_consumo.bien_consumo_uuid ),
-                            'cantidad', entrada_bien_consumo.cant,
+                            'cantidadEntrante', entrada_bien_consumo.cant,
                             'importeValorUnitario', entrada_bien_consumo_valor_nuevo.valor_uni
                         ) as json
                     from entrada_bien_consumo_valor_nuevo
@@ -204,9 +204,10 @@ select json_object(
                         json_object(
                             'typee', 'EntradaBienConsumoValorSalida',
                             'id', entrada_bien_consumo.id,
+                            'uuid', entrada_bien_consumo.uuid,
                             'almacen', json_object( 'uuid', entrada_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', entrada_bien_consumo.bien_consumo_uuid ),
-                            'cantidad', entrada_bien_consumo.cant,
+                            'cantidadEntrante', entrada_bien_consumo.cant,
                             'salida', json_object( 'id', entrada_bien_consumo_valor_salida.salida_bien_consumo_id )
                         ) as json
                     from entrada_bien_consumo_valor_salida
@@ -225,7 +226,6 @@ select json_object(
         )
         and documento_movimiento.documento_transaccion_id = documento_transaccion.id
     ),
-
     'docsSalidaEfectivo', (
         select json_arrayagg(json_object(
             'type', 'DocumentoSalidaEfectivo',
@@ -233,32 +233,33 @@ select json_object(
             'uuid', documento_fuente.uuid,
             'codigoSerie', documento_fuente.cod_serie,
             'codigoNumero', documento_fuente.cod_numero,
-            'fechaEmision', documento_fuente.f_emision,
-            'fechaAnulacion', documento_fuente.f_anulacion,
+            'fechaEmision', concat(documento_fuente.f_emision,'Z'),
+            'fechaAnulacion', concat(documento_fuente.f_anulacion,'Z'),
+            'concepto', documento_fuente.concepto,
             'importeNeto', documento_fuente.importe_neto,
-            'establecimiento', json_object( 'uuid', documento_fuente.establecimiento_uuid ),
             'usuario', json_object( 'uuid', documento_fuente.usuario_uuid ),
-            'concepto', documento_movimiento.concepto,
+            'fechaCreacion', concat(documento_fuente.f_creacion,'Z'),
+            'fechaActualizacion', concat(documento_fuente.f_actualizacion,'Z'),
             'documentoTransaccion', (
                 select json_object(
                     'id', df.id,
                     'uuid', df.uuid,
                     'codigoSerie', df.cod_serie,
                     'codigoNumero', df.cod_numero,
-                    'fechaCreacion', documento_transaccion.f_creacion,
-                    'fechaActualizacion', documento_transaccion.f_actualizacion,
-                    'fechaEmision', df.f_emision,
-                    'fechaAnulacion', df.f_anulacion,
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z'),
+                    'fechaEmision', concat(df.f_emision,'Z'),
+                    'fechaAnulacion', concat(df.f_anulacion,'Z'),
+                    'concepto', df.concepto,
                     'importeNeto', df.importe_neto,
-                    'establecimiento', json_object( 'uuid', df.establecimiento_uuid ),
                     'usuario', json_object( 'uuid', df.usuario_uuid ),
-                    'concepto', documento_transaccion.concepto
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z')
                 )
                 from documento_transaccion
                 left join documento_fuente df on df.id = documento_transaccion.id
                 where documento_transaccion.id = documento_movimiento.documento_transaccion_id
             ),
-
             'notas', (
                 select json_arrayagg(json_object(
                     'id', nota.id,
@@ -279,6 +280,7 @@ select json_object(
                         json_object(
                             'type', 'SalidaEfectivoContado',
                             'id', salida_efectivo.id,
+                            'uuid', salida_efectivo.uuid,
                             'medioTransferencia', (
                                 select json_object(
                                     'id', medio_transferencia.id,
@@ -299,14 +301,15 @@ select json_object(
                         json_object(
                             'type', 'SalidaEfectivoCredito',
                             'id', salida_efectivo.id,
+                            'uuid', salida_efectivo.uuid,
                             'importeValorNeto', salida_efectivo.valor,
                             'tasaInteresDiario', salida_efectivo_credito.tasa_interes_diario,
                             'cuotas', (
                                 select json_arrayagg(json_object(
                                     'id', salida_efectivo_cuota.id,
                                     'numero', salida_efectivo_cuota.numero,
-                                    'fechaInicio', salida_efectivo_cuota.f_inicio,
-                                    'fechaVencimiento', salida_efectivo_cuota.f_vencimiento,
+                                    'fechaInicio', concat(salida_efectivo_cuota.f_inicio,'Z'),
+                                    'fechaVencimiento', concat(salida_efectivo_cuota.f_vencimiento,'Z'),
                                     'impoteCuota', salida_efectivo_cuota.cuota,
                                     'importeAmortizacion', salida_efectivo_cuota.amortizacion,
                                     'importeInteres', salida_efectivo_cuota.interes,
@@ -332,7 +335,6 @@ select json_object(
         )
         and documento_movimiento.documento_transaccion_id = documento_transaccion.id
     ),
-
     'docsSalidaBienConsumo', (
         select json_arrayagg(json_object(
             'type', 'DocumentoSalidaBienConsumo',
@@ -340,32 +342,33 @@ select json_object(
             'uuid', documento_fuente.uuid,
             'codigoSerie', documento_fuente.cod_serie,
             'codigoNumero', documento_fuente.cod_numero,
-            'fechaEmision', documento_fuente.f_emision,
-            'fechaAnulacion', documento_fuente.f_anulacion,
+            'fechaEmision', concat(documento_fuente.f_emision,'Z'),
+            'fechaAnulacion', concat(documento_fuente.f_anulacion,'Z'),
+            'concepto', documento_fuente.concepto,
             'importeNeto', documento_fuente.importe_neto,
-            'establecimiento', json_object( 'uuid', documento_fuente.establecimiento_uuid ),
             'usuario', json_object( 'uuid', documento_fuente.usuario_uuid ),
-            'concepto', documento_movimiento.concepto,
+            'fechaCreacion', concat(documento_fuente.f_creacion,'Z'),
+            'fechaActualizacion', concat(documento_fuente.f_actualizacion,'Z'),
             'documentoTransaccion', (
                 select json_object(
                     'id', df.id,
                     'uuid', df.uuid,
                     'codigoSerie', df.cod_serie,
                     'codigoNumero', df.cod_numero,
-                    'fechaCreacion', documento_transaccion.f_creacion,
-                    'fechaActualizacion', documento_transaccion.f_actualizacion,
-                    'fechaEmision', df.f_emision,
-                    'fechaAnulacion', df.f_anulacion,
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z'),
+                    'fechaEmision', concat(df.f_emision,'Z'),
+                    'fechaAnulacion', concat(df.f_anulacion,'Z'),
+                    'concepto', df.concepto,
                     'importeNeto', df.importe_neto,
-                    'establecimiento', json_object( 'uuid', df.establecimiento_uuid ),
                     'usuario', json_object( 'uuid', df.usuario_uuid ),
-                    'concepto', documento_transaccion.concepto
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z')
                 )
                 from documento_transaccion
                 left join documento_fuente df on df.id = documento_transaccion.id
                 where documento_transaccion.id = documento_movimiento.documento_transaccion_id
             ),
-
             'notas', (
                 select json_arrayagg(json_object(
                     'id', nota.id,
@@ -386,9 +389,10 @@ select json_object(
                         json_object(
                             'type', 'SalidaBienConsumoValorNuevo',
                             'id', salida_bien_consumo.id,
+                            'uuid', salida_bien_consumo.uuid,
                             'almacen', json_object( 'uuid', salida_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', salida_bien_consumo.bien_consumo_uuid ),
-                            'cantidad', salida_bien_consumo.cant,
+                            'cantidadSaliente', salida_bien_consumo.cant,
                             'importePrecioUnitario', salida_bien_consumo.precio_uni
                         ) as json
                     from salida_bien_consumo_valor_nuevo
@@ -401,9 +405,10 @@ select json_object(
                         json_object(
                             'type', 'SalidaBienConsumoValorEntrada',
                             'id', salida_bien_consumo.id,
+                            'uuid', salida_bien_consumo.uuid,
                             'almacen', json_object( 'uuid', salida_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', salida_bien_consumo.bien_consumo_uuid ),
-                            'cantidad', salida_bien_consumo.cant,
+                            'cantidadSaliente', salida_bien_consumo.cant,
                             'importePrecioUnitario', salida_bien_consumo.precio_uni,
                             'entrada', json_object( 'id', salida_bien_consumo_valor_entrada.entrada_bien_consumo_id )
                         ) as json
@@ -438,12 +443,13 @@ select json_object(
     'uuid', df.uuid,
     'codigoSerie', df.cod_serie,
     'codigoNumero', df.cod_numero,
-    'fechaEmision', df.f_emision,
-    'fechaAnulacion', df.f_anulacion,
+    'fechaEmision', concat(df.f_emision,'Z'),
+    'fechaAnulacion', concat(df.f_anulacion,'Z'),
+    'concepto', df.concepto,
     'importeNeto', df.importe_neto,
-    'establecimiento', json_object( 'uuid', df.establecimiento_uuid ),
     'usuario', json_object( 'uuid', df.usuario_uuid ),
-
+    'fechaCreacion', concat(df.f_creacion,'Z'),
+    'fechaActualizacion', concat(df.f_actualizacion,'Z'),
     'notas', (
         select json_arrayagg(json_object(
             'id', nota.id,
@@ -454,11 +460,6 @@ select json_object(
         from nota
         where nota.documento_fuente_id = df.id
     ),
-
-    'fechaCreacion', documento_transaccion.f_creacion,
-    'fechaActualizacion', documento_transaccion.f_actualizacion,
-    'concepto', documento_transaccion.concepto,
-
     'docsEntradaEfectivo', (
         select json_arrayagg(json_object(
             'type', 'DocumentoEntradaEfectivo',
@@ -466,32 +467,33 @@ select json_object(
             'uuid', documento_fuente.uuid,
             'codigoSerie', documento_fuente.cod_serie,
             'codigoNumero', documento_fuente.cod_numero,
-            'fechaEmision', documento_fuente.f_emision,
-            'fechaAnulacion', documento_fuente.f_anulacion,
+            'fechaEmision', concat(documento_fuente.f_emision,'Z'),
+            'fechaAnulacion', concat(documento_fuente.f_anulacion,'Z'),
+            'concepto', documento_fuente.concepto,
             'importeNeto', documento_fuente.importe_neto,
-            'establecimiento', json_object( 'uuid', documento_fuente.establecimiento_uuid ),
             'usuario', json_object( 'uuid', documento_fuente.usuario_uuid ),
-            'concepto', documento_movimiento.concepto,
+            'fechaCreacion', concat(documento_fuente.f_creacion,'Z'),
+            'fechaActualizacion', concat(documento_fuente.f_actualizacion,'Z'),
             'documentoTransaccion', (
                 select json_object(
                     'id', df.id,
                     'uuid', df.uuid,
                     'codigoSerie', df.cod_serie,
                     'codigoNumero', df.cod_numero,
-                    'fechaCreacion', documento_transaccion.f_creacion,
-                    'fechaActualizacion', documento_transaccion.f_actualizacion,
-                    'fechaEmision', df.f_emision,
-                    'fechaAnulacion', df.f_anulacion,
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z'),
+                    'fechaEmision', concat(df.f_emision,'Z'),
+                    'fechaAnulacion', concat(df.f_anulacion,'Z'),
+                    'concepto', df.concepto,
                     'importeNeto', df.importe_neto,
-                    'establecimiento', json_object( 'uuid', df.establecimiento_uuid ),
                     'usuario', json_object( 'uuid', df.usuario_uuid ),
-                    'concepto', documento_transaccion.concepto
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z')
                 )
                 from documento_transaccion
                 left join documento_fuente df on df.id = documento_transaccion.id
                 where documento_transaccion.id = documento_movimiento.documento_transaccion_id
             ),
-
             'notas', (
                 select json_arrayagg(json_object(
                     'id', nota.id,
@@ -512,6 +514,7 @@ select json_object(
                         json_object(
                             'type', 'EntradaEfectivoContado',
                             'id', entrada_efectivo.id,
+                            'uuid', entrada_efectivo.uuid,
                             'medioTransferencia', (
                                 select json_object(
                                     'id', medio_transferencia.id,
@@ -532,14 +535,15 @@ select json_object(
                         json_object(
                             'type', 'EntradaEfectivoCredito',
                             'id', entrada_efectivo.id,
+                            'uuid', entrada_efectivo.uuid,
                             'importeValorNeto', entrada_efectivo.valor,
                             'tasaInteresDiario', entrada_efectivo_credito.tasa_interes_diario,
                             'cuotas', (
                                 select json_arrayagg(json_object(
                                     'id', entrada_efectivo_cuota.id,
                                     'numero', entrada_efectivo_cuota.numero,
-                                    'fechaInicio', entrada_efectivo_cuota.f_inicio,
-                                    'fechaVencimiento', entrada_efectivo_cuota.f_vencimiento,
+                                    'fechaInicio', concat(entrada_efectivo_cuota.f_inicio,'Z'),
+                                    'fechaVencimiento', concat(entrada_efectivo_cuota.f_vencimiento,'Z'),
                                     'importeCuota', entrada_efectivo_cuota.cuota,
                                     'importeAmortizacion', entrada_efectivo_cuota.amortizacion,
                                     'importeInteres', entrada_efectivo_cuota.interes,
@@ -565,7 +569,6 @@ select json_object(
         )
         and documento_movimiento.documento_transaccion_id = documento_transaccion.id
     ),
-
     'docsEntradaBienConsumo', (
         select json_arrayagg(json_object(
             'type', 'DocumentoEntradaBienConsumo',
@@ -573,32 +576,33 @@ select json_object(
             'uuid', documento_fuente.uuid,
             'codigoSerie', documento_fuente.cod_serie,
             'codigoNumero', documento_fuente.cod_numero,
-            'fechaEmision', documento_fuente.f_emision,
-            'fechaAnulacion', documento_fuente.f_anulacion,
+            'fechaEmision', concat(documento_fuente.f_emision,'Z'),
+            'fechaAnulacion', concat(documento_fuente.f_anulacion,'Z'),
+            'concepto', documento_fuente.concepto,
             'importeNeto', documento_fuente.importe_neto,
-            'establecimiento', json_object( 'uuid', documento_fuente.establecimiento_uuid ),
             'usuario', json_object( 'uuid', documento_fuente.usuario_uuid ),
-            'concepto', documento_movimiento.concepto,
+            'fechaCreacion', concat(documento_fuente.f_creacion,'Z'),
+            'fechaActualizacion', concat(documento_fuente.f_actualizacion,'Z'),
             'documentoTransaccion', (
                 select json_object(
                     'id', df.id,
                     'uuid', df.uuid,
                     'codigoSerie', df.cod_serie,
                     'codigoNumero', df.cod_numero,
-                    'fechaCreacion', documento_transaccion.f_creacion,
-                    'fechaActualizacion', documento_transaccion.f_actualizacion,
-                    'fechaEmision', df.f_emision,
-                    'fechaAnulacion', df.f_anulacion,
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z'),
+                    'fechaEmision', concat(df.f_emision,'Z'),
+                    'fechaAnulacion', concat(df.f_anulacion,'Z'),
+                    'concepto', df.concepto,
                     'importeNeto', df.importe_neto,
-                    'establecimiento', json_object( 'uuid', df.establecimiento_uuid ),
                     'usuario', json_object( 'uuid', df.usuario_uuid ),
-                    'concepto', documento_transaccion.concepto
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z')
                 )
                 from documento_transaccion
                 left join documento_fuente df on df.id = documento_transaccion.id
                 where documento_transaccion.id = documento_movimiento.documento_transaccion_id
             ),
-
             'notas', (
                 select json_arrayagg(json_object(
                     'id', nota.id,
@@ -619,9 +623,10 @@ select json_object(
                         json_object(
                             'type', 'EntradaBienConsumoValorNuevo',
                             'id', entrada_bien_consumo.id,
+                            'uuid', entrada_bien_consumo.uuid,
                             'almacen', json_object( 'uuid', entrada_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', entrada_bien_consumo.bien_consumo_uuid ),
-                            'cantidad', entrada_bien_consumo.cant,
+                            'cantidadEntrante', entrada_bien_consumo.cant,
                             'importeValorUnitario', entrada_bien_consumo_valor_nuevo.valor_uni
                         ) as json
                     from entrada_bien_consumo_valor_nuevo
@@ -634,9 +639,10 @@ select json_object(
                         json_object(
                             'typee', 'EntradaBienConsumoValorSalida',
                             'id', entrada_bien_consumo.id,
+                            'uuid', entrada_bien_consumo.uuid,
                             'almacen', json_object( 'uuid', entrada_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', entrada_bien_consumo.bien_consumo_uuid ),
-                            'cantidad', entrada_bien_consumo.cant,
+                            'cantidadEntrante', entrada_bien_consumo.cant,
                             'salida', json_object( 'id', entrada_bien_consumo_valor_salida.salida_bien_consumo_id )
                         ) as json
                     from entrada_bien_consumo_valor_salida
@@ -655,7 +661,6 @@ select json_object(
         )
         and documento_movimiento.documento_transaccion_id = documento_transaccion.id
     ),
-
     'docsSalidaEfectivo', (
         select json_arrayagg(json_object(
             'type', 'DocumentoSalidaEfectivo',
@@ -663,32 +668,33 @@ select json_object(
             'uuid', documento_fuente.uuid,
             'codigoSerie', documento_fuente.cod_serie,
             'codigoNumero', documento_fuente.cod_numero,
-            'fechaEmision', documento_fuente.f_emision,
-            'fechaAnulacion', documento_fuente.f_anulacion,
+            'fechaEmision', concat(documento_fuente.f_emision,'Z'),
+            'fechaAnulacion', concat(documento_fuente.f_anulacion,'Z'),
+            'concepto', documento_fuente.concepto,
             'importeNeto', documento_fuente.importe_neto,
-            'establecimiento', json_object( 'uuid', documento_fuente.establecimiento_uuid ),
             'usuario', json_object( 'uuid', documento_fuente.usuario_uuid ),
-            'concepto', documento_movimiento.concepto,
+            'fechaCreacion', concat(documento_fuente.f_creacion,'Z'),
+            'fechaActualizacion', concat(documento_fuente.f_actualizacion,'Z'),
             'documentoTransaccion', (
                 select json_object(
                     'id', df.id,
                     'uuid', df.uuid,
                     'codigoSerie', df.cod_serie,
                     'codigoNumero', df.cod_numero,
-                    'fechaCreacion', documento_transaccion.f_creacion,
-                    'fechaActualizacion', documento_transaccion.f_actualizacion,
-                    'fechaEmision', df.f_emision,
-                    'fechaAnulacion', df.f_anulacion,
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z'),
+                    'fechaEmision', concat(df.f_emision,'Z'),
+                    'fechaAnulacion', concat(df.f_anulacion,'Z'),
+                    'concepto', df.concepto,
                     'importeNeto', df.importe_neto,
-                    'establecimiento', json_object( 'uuid', df.establecimiento_uuid ),
                     'usuario', json_object( 'uuid', df.usuario_uuid ),
-                    'concepto', documento_transaccion.concepto
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z')
                 )
                 from documento_transaccion
                 left join documento_fuente df on df.id = documento_transaccion.id
                 where documento_transaccion.id = documento_movimiento.documento_transaccion_id
             ),
-
             'notas', (
                 select json_arrayagg(json_object(
                     'id', nota.id,
@@ -709,6 +715,7 @@ select json_object(
                         json_object(
                             'type', 'SalidaEfectivoContado',
                             'id', salida_efectivo.id,
+                            'uuid', salida_efectivo.uuid,
                             'medioTransferencia', (
                                 select json_object(
                                     'id', medio_transferencia.id,
@@ -729,14 +736,15 @@ select json_object(
                         json_object(
                             'type', 'SalidaEfectivoCredito',
                             'id', salida_efectivo.id,
+                            'uuid', salida_efectivo.uuid,
                             'importeValorNeto', salida_efectivo.valor,
                             'tasaInteresDiario', salida_efectivo_credito.tasa_interes_diario,
                             'cuotas', (
                                 select json_arrayagg(json_object(
                                     'id', salida_efectivo_cuota.id,
                                     'numero', salida_efectivo_cuota.numero,
-                                    'fechaInicio', salida_efectivo_cuota.f_inicio,
-                                    'fechaVencimiento', salida_efectivo_cuota.f_vencimiento,
+                                    'fechaInicio', concat(salida_efectivo_cuota.f_inicio,'Z'),
+                                    'fechaVencimiento', concat(salida_efectivo_cuota.f_vencimiento,'Z'),
                                     'impoteCuota', salida_efectivo_cuota.cuota,
                                     'importeAmortizacion', salida_efectivo_cuota.amortizacion,
                                     'importeInteres', salida_efectivo_cuota.interes,
@@ -762,7 +770,6 @@ select json_object(
         )
         and documento_movimiento.documento_transaccion_id = documento_transaccion.id
     ),
-
     'docsSalidaBienConsumo', (
         select json_arrayagg(json_object(
             'type', 'DocumentoSalidaBienConsumo',
@@ -770,32 +777,33 @@ select json_object(
             'uuid', documento_fuente.uuid,
             'codigoSerie', documento_fuente.cod_serie,
             'codigoNumero', documento_fuente.cod_numero,
-            'fechaEmision', documento_fuente.f_emision,
-            'fechaAnulacion', documento_fuente.f_anulacion,
+            'fechaEmision', concat(documento_fuente.f_emision,'Z'),
+            'fechaAnulacion', concat(documento_fuente.f_anulacion,'Z'),
+            'concepto', documento_fuente.concepto,
             'importeNeto', documento_fuente.importe_neto,
-            'establecimiento', json_object( 'uuid', documento_fuente.establecimiento_uuid ),
             'usuario', json_object( 'uuid', documento_fuente.usuario_uuid ),
-            'concepto', documento_movimiento.concepto,
+            'fechaCreacion', concat(documento_fuente.f_creacion,'Z'),
+            'fechaActualizacion', concat(documento_fuente.f_actualizacion,'Z'),
             'documentoTransaccion', (
                 select json_object(
                     'id', df.id,
                     'uuid', df.uuid,
                     'codigoSerie', df.cod_serie,
                     'codigoNumero', df.cod_numero,
-                    'fechaCreacion', documento_transaccion.f_creacion,
-                    'fechaActualizacion', documento_transaccion.f_actualizacion,
-                    'fechaEmision', df.f_emision,
-                    'fechaAnulacion', df.f_anulacion,
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z'),
+                    'fechaEmision', concat(df.f_emision,'Z'),
+                    'fechaAnulacion', concat(df.f_anulacion,'Z'),
+                    'concepto', df.concepto,
                     'importeNeto', df.importe_neto,
-                    'establecimiento', json_object( 'uuid', df.establecimiento_uuid ),
                     'usuario', json_object( 'uuid', df.usuario_uuid ),
-                    'concepto', documento_transaccion.concepto
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z')
                 )
                 from documento_transaccion
                 left join documento_fuente df on df.id = documento_transaccion.id
                 where documento_transaccion.id = documento_movimiento.documento_transaccion_id
             ),
-
             'notas', (
                 select json_arrayagg(json_object(
                     'id', nota.id,
@@ -816,9 +824,10 @@ select json_object(
                         json_object(
                             'type', 'SalidaBienConsumoValorNuevo',
                             'id', salida_bien_consumo.id,
+                            'uuid', salida_bien_consumo.uuid,
                             'almacen', json_object( 'uuid', salida_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', salida_bien_consumo.bien_consumo_uuid ),
-                            'cantidad', salida_bien_consumo.cant,
+                            'cantidadSaliente', salida_bien_consumo.cant,
                             'importePrecioUnitario', salida_bien_consumo.precio_uni
                         ) as json
                     from salida_bien_consumo_valor_nuevo
@@ -831,9 +840,10 @@ select json_object(
                         json_object(
                             'type', 'SalidaBienConsumoValorEntrada',
                             'id', salida_bien_consumo.id,
+                            'uuid', salida_bien_consumo.uuid,
                             'almacen', json_object( 'uuid', salida_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', salida_bien_consumo.bien_consumo_uuid ),
-                            'cantidad', salida_bien_consumo.cant,
+                            'cantidadSaliente', salida_bien_consumo.cant,
                             'importePrecioUnitario', salida_bien_consumo.precio_uni,
                             'entrada', json_object( 'id', salida_bien_consumo_valor_entrada.entrada_bien_consumo_id )
                         ) as json
@@ -853,10 +863,6 @@ select json_object(
         )
         and documento_movimiento.documento_transaccion_id = documento_transaccion.id
     ),
-
-    'fechaCreacion', documento_transaccion.f_creacion,
-    'fechaActualizacion', documento_transaccion.f_actualizacion,
-    'concepto', documento_transaccion.concepto,
 
     'comprobanteTipo', (
         select json_object(
@@ -897,14 +903,15 @@ select json_object(
     'credito', (
         select json_object(
             'id', entrada_efectivo.id,
+            'uuid', entrada_efectivo.uuid,
             'importeValorNeto', entrada_efectivo.valor,
             'tasaInteresDiario', nte_credito.tasa_interes_diario,
             'cuotas', (
                 select json_arrayagg(json_object(
                     'id', nte_cuota.id,
                     'numero', nte_cuota.numero,
-                    'fechaInicio', nte_cuota.f_inicio,
-                    'fechaVencimiento', nte_cuota.f_vencimiento,
+                    'fechaInicio', concat(nte_cuota.f_inicio,'Z'),
+                    'fechaVencimiento', concat(nte_cuota.f_vencimiento,'Z'),
                     'impoteCuota', nte_cuota.cuota,
                     'impoteAmortizacion', nte_cuota.amortizacion,
                     'importeInteres', nte_cuota.interes,
@@ -934,12 +941,13 @@ select json_object(
     'uuid', df.uuid,
     'codigoSerie', df.cod_serie,
     'codigoNumero', df.cod_numero,
-    'fechaEmision', df.f_emision,
-    'fechaAnulacion', df.f_anulacion,
+    'fechaEmision', concat(df.f_emision,'Z'),
+    'fechaAnulacion', concat(df.f_anulacion,'Z'),
+    'concepto', df.concepto,
     'importeNeto', df.importe_neto,
-    'establecimiento', json_object( 'uuid', df.establecimiento_uuid ),
     'usuario', json_object( 'uuid', df.usuario_uuid ),
-
+    'fechaCreacion', concat(df.f_creacion,'Z'),
+    'fechaActualizacion', concat(df.f_actualizacion,'Z'),
     'notas', (
         select json_arrayagg(json_object(
             'id', nota.id,
@@ -950,11 +958,6 @@ select json_object(
         from nota
         where nota.documento_fuente_id = df.id
     ),
-
-    'fechaCreacion', documento_transaccion.f_creacion,
-    'fechaActualizacion', documento_transaccion.f_actualizacion,
-    'concepto', documento_transaccion.concepto,
-
     'docsEntradaEfectivo', (
         select json_arrayagg(json_object(
             'type', 'DocumentoEntradaEfectivo',
@@ -962,32 +965,33 @@ select json_object(
             'uuid', documento_fuente.uuid,
             'codigoSerie', documento_fuente.cod_serie,
             'codigoNumero', documento_fuente.cod_numero,
-            'fechaEmision', documento_fuente.f_emision,
-            'fechaAnulacion', documento_fuente.f_anulacion,
+            'fechaEmision', concat(documento_fuente.f_emision,'Z'),
+            'fechaAnulacion', concat(documento_fuente.f_anulacion,'Z'),
+            'concepto', documento_fuente.concepto,
             'importeNeto', documento_fuente.importe_neto,
-            'establecimiento', json_object( 'uuid', documento_fuente.establecimiento_uuid ),
             'usuario', json_object( 'uuid', documento_fuente.usuario_uuid ),
-            'concepto', documento_movimiento.concepto,
+            'fechaCreacion', concat(documento_fuente.f_creacion,'Z'),
+            'fechaActualizacion', concat(documento_fuente.f_actualizacion,'Z'),
             'documentoTransaccion', (
                 select json_object(
                     'id', df.id,
                     'uuid', df.uuid,
                     'codigoSerie', df.cod_serie,
                     'codigoNumero', df.cod_numero,
-                    'fechaCreacion', documento_transaccion.f_creacion,
-                    'fechaActualizacion', documento_transaccion.f_actualizacion,
-                    'fechaEmision', df.f_emision,
-                    'fechaAnulacion', df.f_anulacion,
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z'),
+                    'fechaEmision', concat(df.f_emision,'Z'),
+                    'fechaAnulacion', concat(df.f_anulacion,'Z'),
+                    'concepto', df.concepto,
                     'importeNeto', df.importe_neto,
-                    'establecimiento', json_object( 'uuid', df.establecimiento_uuid ),
                     'usuario', json_object( 'uuid', df.usuario_uuid ),
-                    'concepto', documento_transaccion.concepto
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z')
                 )
                 from documento_transaccion
                 left join documento_fuente df on df.id = documento_transaccion.id
                 where documento_transaccion.id = documento_movimiento.documento_transaccion_id
             ),
-
             'notas', (
                 select json_arrayagg(json_object(
                     'id', nota.id,
@@ -1008,6 +1012,7 @@ select json_object(
                         json_object(
                             'type', 'EntradaEfectivoContado',
                             'id', entrada_efectivo.id,
+                            'uuid', entrada_efectivo.uuid,
                             'medioTransferencia', (
                                 select json_object(
                                     'id', medio_transferencia.id,
@@ -1028,14 +1033,15 @@ select json_object(
                         json_object(
                             'type', 'EntradaEfectivoCredito',
                             'id', entrada_efectivo.id,
+                            'uuid', entrada_efectivo.uuid,
                             'importeValorNeto', entrada_efectivo.valor,
                             'tasaInteresDiario', entrada_efectivo_credito.tasa_interes_diario,
                             'cuotas', (
                                 select json_arrayagg(json_object(
                                     'id', entrada_efectivo_cuota.id,
                                     'numero', entrada_efectivo_cuota.numero,
-                                    'fechaInicio', entrada_efectivo_cuota.f_inicio,
-                                    'fechaVencimiento', entrada_efectivo_cuota.f_vencimiento,
+                                    'fechaInicio', concat(entrada_efectivo_cuota.f_inicio,'Z'),
+                                    'fechaVencimiento', concat(entrada_efectivo_cuota.f_vencimiento,'Z'),
                                     'importeCuota', entrada_efectivo_cuota.cuota,
                                     'importeAmortizacion', entrada_efectivo_cuota.amortizacion,
                                     'importeInteres', entrada_efectivo_cuota.interes,
@@ -1061,7 +1067,6 @@ select json_object(
         )
         and documento_movimiento.documento_transaccion_id = documento_transaccion.id
     ),
-
     'docsEntradaBienConsumo', (
         select json_arrayagg(json_object(
             'type', 'DocumentoEntradaBienConsumo',
@@ -1069,32 +1074,33 @@ select json_object(
             'uuid', documento_fuente.uuid,
             'codigoSerie', documento_fuente.cod_serie,
             'codigoNumero', documento_fuente.cod_numero,
-            'fechaEmision', documento_fuente.f_emision,
-            'fechaAnulacion', documento_fuente.f_anulacion,
+            'fechaEmision', concat(documento_fuente.f_emision,'Z'),
+            'fechaAnulacion', concat(documento_fuente.f_anulacion,'Z'),
+            'concepto', documento_fuente.concepto,
             'importeNeto', documento_fuente.importe_neto,
-            'establecimiento', json_object( 'uuid', documento_fuente.establecimiento_uuid ),
             'usuario', json_object( 'uuid', documento_fuente.usuario_uuid ),
-            'concepto', documento_movimiento.concepto,
+            'fechaCreacion', concat(documento_fuente.f_creacion,'Z'),
+            'fechaActualizacion', concat(documento_fuente.f_actualizacion,'Z'),
             'documentoTransaccion', (
                 select json_object(
                     'id', df.id,
                     'uuid', df.uuid,
                     'codigoSerie', df.cod_serie,
                     'codigoNumero', df.cod_numero,
-                    'fechaCreacion', documento_transaccion.f_creacion,
-                    'fechaActualizacion', documento_transaccion.f_actualizacion,
-                    'fechaEmision', df.f_emision,
-                    'fechaAnulacion', df.f_anulacion,
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z'),
+                    'fechaEmision', concat(df.f_emision,'Z'),
+                    'fechaAnulacion', concat(df.f_anulacion,'Z'),
+                    'concepto', df.concepto,
                     'importeNeto', df.importe_neto,
-                    'establecimiento', json_object( 'uuid', df.establecimiento_uuid ),
                     'usuario', json_object( 'uuid', df.usuario_uuid ),
-                    'concepto', documento_transaccion.concepto
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z')
                 )
                 from documento_transaccion
                 left join documento_fuente df on df.id = documento_transaccion.id
                 where documento_transaccion.id = documento_movimiento.documento_transaccion_id
             ),
-
             'notas', (
                 select json_arrayagg(json_object(
                     'id', nota.id,
@@ -1115,9 +1121,10 @@ select json_object(
                         json_object(
                             'type', 'EntradaBienConsumoValorNuevo',
                             'id', entrada_bien_consumo.id,
+                            'uuid', entrada_bien_consumo.uuid,
                             'almacen', json_object( 'uuid', entrada_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', entrada_bien_consumo.bien_consumo_uuid ),
-                            'cantidad', entrada_bien_consumo.cant,
+                            'cantidadEntrante', entrada_bien_consumo.cant,
                             'importeValorUnitario', entrada_bien_consumo_valor_nuevo.valor_uni
                         ) as json
                     from entrada_bien_consumo_valor_nuevo
@@ -1130,9 +1137,10 @@ select json_object(
                         json_object(
                             'typee', 'EntradaBienConsumoValorSalida',
                             'id', entrada_bien_consumo.id,
+                            'uuid', entrada_bien_consumo.uuid,
                             'almacen', json_object( 'uuid', entrada_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', entrada_bien_consumo.bien_consumo_uuid ),
-                            'cantidad', entrada_bien_consumo.cant,
+                            'cantidadEntrante', entrada_bien_consumo.cant,
                             'salida', json_object( 'id', entrada_bien_consumo_valor_salida.salida_bien_consumo_id )
                         ) as json
                     from entrada_bien_consumo_valor_salida
@@ -1151,7 +1159,6 @@ select json_object(
         )
         and documento_movimiento.documento_transaccion_id = documento_transaccion.id
     ),
-
     'docsSalidaEfectivo', (
         select json_arrayagg(json_object(
             'type', 'DocumentoSalidaEfectivo',
@@ -1159,32 +1166,33 @@ select json_object(
             'uuid', documento_fuente.uuid,
             'codigoSerie', documento_fuente.cod_serie,
             'codigoNumero', documento_fuente.cod_numero,
-            'fechaEmision', documento_fuente.f_emision,
-            'fechaAnulacion', documento_fuente.f_anulacion,
+            'fechaEmision', concat(documento_fuente.f_emision,'Z'),
+            'fechaAnulacion', concat(documento_fuente.f_anulacion,'Z'),
+            'concepto', documento_fuente.concepto,
             'importeNeto', documento_fuente.importe_neto,
-            'establecimiento', json_object( 'uuid', documento_fuente.establecimiento_uuid ),
             'usuario', json_object( 'uuid', documento_fuente.usuario_uuid ),
-            'concepto', documento_movimiento.concepto,
+            'fechaCreacion', concat(documento_fuente.f_creacion,'Z'),
+            'fechaActualizacion', concat(documento_fuente.f_actualizacion,'Z'),
             'documentoTransaccion', (
                 select json_object(
                     'id', df.id,
                     'uuid', df.uuid,
                     'codigoSerie', df.cod_serie,
                     'codigoNumero', df.cod_numero,
-                    'fechaCreacion', documento_transaccion.f_creacion,
-                    'fechaActualizacion', documento_transaccion.f_actualizacion,
-                    'fechaEmision', df.f_emision,
-                    'fechaAnulacion', df.f_anulacion,
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z'),
+                    'fechaEmision', concat(df.f_emision,'Z'),
+                    'fechaAnulacion', concat(df.f_anulacion,'Z'),
+                    'concepto', df.concepto,
                     'importeNeto', df.importe_neto,
-                    'establecimiento', json_object( 'uuid', df.establecimiento_uuid ),
                     'usuario', json_object( 'uuid', df.usuario_uuid ),
-                    'concepto', documento_transaccion.concepto
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z')
                 )
                 from documento_transaccion
                 left join documento_fuente df on df.id = documento_transaccion.id
                 where documento_transaccion.id = documento_movimiento.documento_transaccion_id
             ),
-
             'notas', (
                 select json_arrayagg(json_object(
                     'id', nota.id,
@@ -1205,6 +1213,7 @@ select json_object(
                         json_object(
                             'type', 'SalidaEfectivoContado',
                             'id', salida_efectivo.id,
+                            'uuid', salida_efectivo.uuid,
                             'medioTransferencia', (
                                 select json_object(
                                     'id', medio_transferencia.id,
@@ -1225,14 +1234,15 @@ select json_object(
                         json_object(
                             'type', 'SalidaEfectivoCredito',
                             'id', salida_efectivo.id,
+                            'uuid', salida_efectivo.uuid,
                             'importeValorNeto', salida_efectivo.valor,
                             'tasaInteresDiario', salida_efectivo_credito.tasa_interes_diario,
                             'cuotas', (
                                 select json_arrayagg(json_object(
                                     'id', salida_efectivo_cuota.id,
                                     'numero', salida_efectivo_cuota.numero,
-                                    'fechaInicio', salida_efectivo_cuota.f_inicio,
-                                    'fechaVencimiento', salida_efectivo_cuota.f_vencimiento,
+                                    'fechaInicio', concat(salida_efectivo_cuota.f_inicio,'Z'),
+                                    'fechaVencimiento', concat(salida_efectivo_cuota.f_vencimiento,'Z'),
                                     'impoteCuota', salida_efectivo_cuota.cuota,
                                     'importeAmortizacion', salida_efectivo_cuota.amortizacion,
                                     'importeInteres', salida_efectivo_cuota.interes,
@@ -1258,7 +1268,6 @@ select json_object(
         )
         and documento_movimiento.documento_transaccion_id = documento_transaccion.id
     ),
-
     'docsSalidaBienConsumo', (
         select json_arrayagg(json_object(
             'type', 'DocumentoSalidaBienConsumo',
@@ -1266,32 +1275,33 @@ select json_object(
             'uuid', documento_fuente.uuid,
             'codigoSerie', documento_fuente.cod_serie,
             'codigoNumero', documento_fuente.cod_numero,
-            'fechaEmision', documento_fuente.f_emision,
-            'fechaAnulacion', documento_fuente.f_anulacion,
+            'fechaEmision', concat(documento_fuente.f_emision,'Z'),
+            'fechaAnulacion', concat(documento_fuente.f_anulacion,'Z'),
+            'concepto', documento_fuente.concepto,
             'importeNeto', documento_fuente.importe_neto,
-            'establecimiento', json_object( 'uuid', documento_fuente.establecimiento_uuid ),
             'usuario', json_object( 'uuid', documento_fuente.usuario_uuid ),
-            'concepto', documento_movimiento.concepto,
+            'fechaCreacion', concat(documento_fuente.f_creacion,'Z'),
+            'fechaActualizacion', concat(documento_fuente.f_actualizacion,'Z'),
             'documentoTransaccion', (
                 select json_object(
                     'id', df.id,
                     'uuid', df.uuid,
                     'codigoSerie', df.cod_serie,
                     'codigoNumero', df.cod_numero,
-                    'fechaCreacion', documento_transaccion.f_creacion,
-                    'fechaActualizacion', documento_transaccion.f_actualizacion,
-                    'fechaEmision', df.f_emision,
-                    'fechaAnulacion', df.f_anulacion,
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z'),
+                    'fechaEmision', concat(df.f_emision,'Z'),
+                    'fechaAnulacion', concat(df.f_anulacion,'Z'),
+                    'concepto', df.concepto,
                     'importeNeto', df.importe_neto,
-                    'establecimiento', json_object( 'uuid', df.establecimiento_uuid ),
                     'usuario', json_object( 'uuid', df.usuario_uuid ),
-                    'concepto', documento_transaccion.concepto
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z')
                 )
                 from documento_transaccion
                 left join documento_fuente df on df.id = documento_transaccion.id
                 where documento_transaccion.id = documento_movimiento.documento_transaccion_id
             ),
-
             'notas', (
                 select json_arrayagg(json_object(
                     'id', nota.id,
@@ -1312,9 +1322,10 @@ select json_object(
                         json_object(
                             'type', 'SalidaBienConsumoValorNuevo',
                             'id', salida_bien_consumo.id,
+                            'uuid', salida_bien_consumo.uuid,
                             'almacen', json_object( 'uuid', salida_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', salida_bien_consumo.bien_consumo_uuid ),
-                            'cantidad', salida_bien_consumo.cant,
+                            'cantidadSaliente', salida_bien_consumo.cant,
                             'importePrecioUnitario', salida_bien_consumo.precio_uni
                         ) as json
                     from salida_bien_consumo_valor_nuevo
@@ -1327,9 +1338,10 @@ select json_object(
                         json_object(
                             'type', 'SalidaBienConsumoValorEntrada',
                             'id', salida_bien_consumo.id,
+                            'uuid', salida_bien_consumo.uuid,
                             'almacen', json_object( 'uuid', salida_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', salida_bien_consumo.bien_consumo_uuid ),
-                            'cantidad', salida_bien_consumo.cant,
+                            'cantidadSaliente', salida_bien_consumo.cant,
                             'importePrecioUnitario', salida_bien_consumo.precio_uni,
                             'entrada', json_object( 'id', salida_bien_consumo_valor_entrada.entrada_bien_consumo_id )
                         ) as json
@@ -1349,10 +1361,6 @@ select json_object(
         )
         and documento_movimiento.documento_transaccion_id = documento_transaccion.id
     ),
-
-    'fechaCreacion', documento_transaccion.f_creacion,
-    'fechaActualizacion', documento_transaccion.f_actualizacion,
-    'concepto', documento_transaccion.concepto,
 
     'cliente', json_object( 'uuid', nota_transaccion_salida.cliente_uuid ),
     'clienteDocumentoIdentificacion', json_object( 'uuid', nota_transaccion_salida.cliente_documento_identificacion_uuid ),
@@ -1383,14 +1391,15 @@ select json_object(
     'credito', (
         select json_object(
             'id', salida_efectivo.id,
+            'uuid', salida_efectivo.uuid,
             'importeValorNeto', salida_efectivo.valor,
             'tasaInteresDiario', nts_credito.tasa_interes_diario,
             'cuotas', (
                 select json_arrayagg(json_object(
                     'id', nts_cuota.id,
                     'numero', nts_cuota.numero,
-                    'fechaInicio', nts_cuota.f_inicio,
-                    'fechaVencimiento', nts_cuota.f_vencimiento,
+                    'fechaInicio', concat(nts_cuota.f_inicio,'Z'),
+                    'fechaVencimiento', concat(nts_cuota.f_vencimiento,'Z'),
                     'impoteCuota', nts_cuota.cuota,
                     'importeAmortizacion', nts_cuota.amortizacion,
                     'importeInteres', nts_cuota.interes,
@@ -1418,12 +1427,13 @@ select json_object(
     'uuid', df.uuid,
     'codigoSerie', df.cod_serie,
     'codigoNumero', df.cod_numero,
-    'fechaEmision', df.f_emision,
-    'fechaAnulacion', df.f_anulacion,
+    'fechaEmision', concat(df.f_emision,'Z'),
+    'fechaAnulacion', concat(df.f_anulacion,'Z'),
+    'concepto', df.concepto,
     'importeNeto', df.importe_neto,
-    'establecimiento', json_object( 'uuid', df.establecimiento_uuid ),
     'usuario', json_object( 'uuid', df.usuario_uuid ),
-
+    'fechaCreacion', concat(df.f_creacion,'Z'),
+    'fechaActualizacion', concat(df.f_actualizacion,'Z'),
     'notas', (
         select json_arrayagg(json_object(
             'id', nota.id,
@@ -1434,11 +1444,6 @@ select json_object(
         from nota
         where nota.documento_fuente_id = df.id
     ),
-
-    'fechaCreacion', documento_transaccion.f_creacion,
-    'fechaActualizacion', documento_transaccion.f_actualizacion,
-    'concepto', documento_transaccion.concepto,
-
     'docsEntradaEfectivo', (
         select json_arrayagg(json_object(
             'type', 'DocumentoEntradaEfectivo',
@@ -1446,32 +1451,33 @@ select json_object(
             'uuid', documento_fuente.uuid,
             'codigoSerie', documento_fuente.cod_serie,
             'codigoNumero', documento_fuente.cod_numero,
-            'fechaEmision', documento_fuente.f_emision,
-            'fechaAnulacion', documento_fuente.f_anulacion,
+            'fechaEmision', concat(documento_fuente.f_emision,'Z'),
+            'fechaAnulacion', concat(documento_fuente.f_anulacion,'Z'),
+            'concepto', documento_fuente.concepto,
             'importeNeto', documento_fuente.importe_neto,
-            'establecimiento', json_object( 'uuid', documento_fuente.establecimiento_uuid ),
             'usuario', json_object( 'uuid', documento_fuente.usuario_uuid ),
-            'concepto', documento_movimiento.concepto,
+            'fechaCreacion', concat(documento_fuente.f_creacion,'Z'),
+            'fechaActualizacion', concat(documento_fuente.f_actualizacion,'Z'),
             'documentoTransaccion', (
                 select json_object(
                     'id', df.id,
                     'uuid', df.uuid,
                     'codigoSerie', df.cod_serie,
                     'codigoNumero', df.cod_numero,
-                    'fechaCreacion', documento_transaccion.f_creacion,
-                    'fechaActualizacion', documento_transaccion.f_actualizacion,
-                    'fechaEmision', df.f_emision,
-                    'fechaAnulacion', df.f_anulacion,
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z'),
+                    'fechaEmision', concat(df.f_emision,'Z'),
+                    'fechaAnulacion', concat(df.f_anulacion,'Z'),
+                    'concepto', df.concepto,
                     'importeNeto', df.importe_neto,
-                    'establecimiento', json_object( 'uuid', df.establecimiento_uuid ),
                     'usuario', json_object( 'uuid', df.usuario_uuid ),
-                    'concepto', documento_transaccion.concepto
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z')
                 )
                 from documento_transaccion
                 left join documento_fuente df on df.id = documento_transaccion.id
                 where documento_transaccion.id = documento_movimiento.documento_transaccion_id
             ),
-
             'notas', (
                 select json_arrayagg(json_object(
                     'id', nota.id,
@@ -1492,6 +1498,7 @@ select json_object(
                         json_object(
                             'type', 'EntradaEfectivoContado',
                             'id', entrada_efectivo.id,
+                            'uuid', entrada_efectivo.uuid,
                             'medioTransferencia', (
                                 select json_object(
                                     'id', medio_transferencia.id,
@@ -1512,14 +1519,15 @@ select json_object(
                         json_object(
                             'type', 'EntradaEfectivoCredito',
                             'id', entrada_efectivo.id,
+                            'uuid', entrada_efectivo.uuid,
                             'importeValorNeto', entrada_efectivo.valor,
                             'tasaInteresDiario', entrada_efectivo_credito.tasa_interes_diario,
                             'cuotas', (
                                 select json_arrayagg(json_object(
                                     'id', entrada_efectivo_cuota.id,
                                     'numero', entrada_efectivo_cuota.numero,
-                                    'fechaInicio', entrada_efectivo_cuota.f_inicio,
-                                    'fechaVencimiento', entrada_efectivo_cuota.f_vencimiento,
+                                    'fechaInicio', concat(entrada_efectivo_cuota.f_inicio,'Z'),
+                                    'fechaVencimiento', concat(entrada_efectivo_cuota.f_vencimiento,'Z'),
                                     'importeCuota', entrada_efectivo_cuota.cuota,
                                     'importeAmortizacion', entrada_efectivo_cuota.amortizacion,
                                     'importeInteres', entrada_efectivo_cuota.interes,
@@ -1545,7 +1553,6 @@ select json_object(
         )
         and documento_movimiento.documento_transaccion_id = documento_transaccion.id
     ),
-
     'docsEntradaBienConsumo', (
         select json_arrayagg(json_object(
             'type', 'DocumentoEntradaBienConsumo',
@@ -1553,32 +1560,33 @@ select json_object(
             'uuid', documento_fuente.uuid,
             'codigoSerie', documento_fuente.cod_serie,
             'codigoNumero', documento_fuente.cod_numero,
-            'fechaEmision', documento_fuente.f_emision,
-            'fechaAnulacion', documento_fuente.f_anulacion,
+            'fechaEmision', concat(documento_fuente.f_emision,'Z'),
+            'fechaAnulacion', concat(documento_fuente.f_anulacion,'Z'),
+            'concepto', documento_fuente.concepto,
             'importeNeto', documento_fuente.importe_neto,
-            'establecimiento', json_object( 'uuid', documento_fuente.establecimiento_uuid ),
             'usuario', json_object( 'uuid', documento_fuente.usuario_uuid ),
-            'concepto', documento_movimiento.concepto,
+            'fechaCreacion', concat(documento_fuente.f_creacion,'Z'),
+            'fechaActualizacion', concat(documento_fuente.f_actualizacion,'Z'),
             'documentoTransaccion', (
                 select json_object(
                     'id', df.id,
                     'uuid', df.uuid,
                     'codigoSerie', df.cod_serie,
                     'codigoNumero', df.cod_numero,
-                    'fechaCreacion', documento_transaccion.f_creacion,
-                    'fechaActualizacion', documento_transaccion.f_actualizacion,
-                    'fechaEmision', df.f_emision,
-                    'fechaAnulacion', df.f_anulacion,
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z'),
+                    'fechaEmision', concat(df.f_emision,'Z'),
+                    'fechaAnulacion', concat(df.f_anulacion,'Z'),
+                    'concepto', df.concepto,
                     'importeNeto', df.importe_neto,
-                    'establecimiento', json_object( 'uuid', df.establecimiento_uuid ),
                     'usuario', json_object( 'uuid', df.usuario_uuid ),
-                    'concepto', documento_transaccion.concepto
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z')
                 )
                 from documento_transaccion
                 left join documento_fuente df on df.id = documento_transaccion.id
                 where documento_transaccion.id = documento_movimiento.documento_transaccion_id
             ),
-
             'notas', (
                 select json_arrayagg(json_object(
                     'id', nota.id,
@@ -1599,9 +1607,10 @@ select json_object(
                         json_object(
                             'type', 'EntradaBienConsumoValorNuevo',
                             'id', entrada_bien_consumo.id,
+                            'uuid', entrada_bien_consumo.uuid,
                             'almacen', json_object( 'uuid', entrada_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', entrada_bien_consumo.bien_consumo_uuid ),
-                            'cantidad', entrada_bien_consumo.cant,
+                            'cantidadEntrante', entrada_bien_consumo.cant,
                             'importeValorUnitario', entrada_bien_consumo_valor_nuevo.valor_uni
                         ) as json
                     from entrada_bien_consumo_valor_nuevo
@@ -1614,9 +1623,10 @@ select json_object(
                         json_object(
                             'typee', 'EntradaBienConsumoValorSalida',
                             'id', entrada_bien_consumo.id,
+                            'uuid', entrada_bien_consumo.uuid,
                             'almacen', json_object( 'uuid', entrada_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', entrada_bien_consumo.bien_consumo_uuid ),
-                            'cantidad', entrada_bien_consumo.cant,
+                            'cantidadEntrante', entrada_bien_consumo.cant,
                             'salida', json_object( 'id', entrada_bien_consumo_valor_salida.salida_bien_consumo_id )
                         ) as json
                     from entrada_bien_consumo_valor_salida
@@ -1635,7 +1645,6 @@ select json_object(
         )
         and documento_movimiento.documento_transaccion_id = documento_transaccion.id
     ),
-
     'docsSalidaEfectivo', (
         select json_arrayagg(json_object(
             'type', 'DocumentoSalidaEfectivo',
@@ -1643,32 +1652,33 @@ select json_object(
             'uuid', documento_fuente.uuid,
             'codigoSerie', documento_fuente.cod_serie,
             'codigoNumero', documento_fuente.cod_numero,
-            'fechaEmision', documento_fuente.f_emision,
-            'fechaAnulacion', documento_fuente.f_anulacion,
+            'fechaEmision', concat(documento_fuente.f_emision,'Z'),
+            'fechaAnulacion', concat(documento_fuente.f_anulacion,'Z'),
+            'concepto', documento_fuente.concepto,
             'importeNeto', documento_fuente.importe_neto,
-            'establecimiento', json_object( 'uuid', documento_fuente.establecimiento_uuid ),
             'usuario', json_object( 'uuid', documento_fuente.usuario_uuid ),
-            'concepto', documento_movimiento.concepto,
+            'fechaCreacion', concat(documento_fuente.f_creacion,'Z'),
+            'fechaActualizacion', concat(documento_fuente.f_actualizacion,'Z'),
             'documentoTransaccion', (
                 select json_object(
                     'id', df.id,
                     'uuid', df.uuid,
                     'codigoSerie', df.cod_serie,
                     'codigoNumero', df.cod_numero,
-                    'fechaCreacion', documento_transaccion.f_creacion,
-                    'fechaActualizacion', documento_transaccion.f_actualizacion,
-                    'fechaEmision', df.f_emision,
-                    'fechaAnulacion', df.f_anulacion,
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z'),
+                    'fechaEmision', concat(df.f_emision,'Z'),
+                    'fechaAnulacion', concat(df.f_anulacion,'Z'),
+                    'concepto', df.concepto,
                     'importeNeto', df.importe_neto,
-                    'establecimiento', json_object( 'uuid', df.establecimiento_uuid ),
                     'usuario', json_object( 'uuid', df.usuario_uuid ),
-                    'concepto', documento_transaccion.concepto
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z')
                 )
                 from documento_transaccion
                 left join documento_fuente df on df.id = documento_transaccion.id
                 where documento_transaccion.id = documento_movimiento.documento_transaccion_id
             ),
-
             'notas', (
                 select json_arrayagg(json_object(
                     'id', nota.id,
@@ -1689,6 +1699,7 @@ select json_object(
                         json_object(
                             'type', 'SalidaEfectivoContado',
                             'id', salida_efectivo.id,
+                            'uuid', salida_efectivo.uuid,
                             'medioTransferencia', (
                                 select json_object(
                                     'id', medio_transferencia.id,
@@ -1709,14 +1720,15 @@ select json_object(
                         json_object(
                             'type', 'SalidaEfectivoCredito',
                             'id', salida_efectivo.id,
+                            'uuid', salida_efectivo.uuid,
                             'importeValorNeto', salida_efectivo.valor,
                             'tasaInteresDiario', salida_efectivo_credito.tasa_interes_diario,
                             'cuotas', (
                                 select json_arrayagg(json_object(
                                     'id', salida_efectivo_cuota.id,
                                     'numero', salida_efectivo_cuota.numero,
-                                    'fechaInicio', salida_efectivo_cuota.f_inicio,
-                                    'fechaVencimiento', salida_efectivo_cuota.f_vencimiento,
+                                    'fechaInicio', concat(salida_efectivo_cuota.f_inicio,'Z'),
+                                    'fechaVencimiento', concat(salida_efectivo_cuota.f_vencimiento,'Z'),
                                     'impoteCuota', salida_efectivo_cuota.cuota,
                                     'importeAmortizacion', salida_efectivo_cuota.amortizacion,
                                     'importeInteres', salida_efectivo_cuota.interes,
@@ -1742,7 +1754,6 @@ select json_object(
         )
         and documento_movimiento.documento_transaccion_id = documento_transaccion.id
     ),
-
     'docsSalidaBienConsumo', (
         select json_arrayagg(json_object(
             'type', 'DocumentoSalidaBienConsumo',
@@ -1750,32 +1761,33 @@ select json_object(
             'uuid', documento_fuente.uuid,
             'codigoSerie', documento_fuente.cod_serie,
             'codigoNumero', documento_fuente.cod_numero,
-            'fechaEmision', documento_fuente.f_emision,
-            'fechaAnulacion', documento_fuente.f_anulacion,
+            'fechaEmision', concat(documento_fuente.f_emision,'Z'),
+            'fechaAnulacion', concat(documento_fuente.f_anulacion,'Z'),
+            'concepto', documento_fuente.concepto,
             'importeNeto', documento_fuente.importe_neto,
-            'establecimiento', json_object( 'uuid', documento_fuente.establecimiento_uuid ),
             'usuario', json_object( 'uuid', documento_fuente.usuario_uuid ),
-            'concepto', documento_movimiento.concepto,
+            'fechaCreacion', concat(documento_fuente.f_creacion,'Z'),
+            'fechaActualizacion', concat(documento_fuente.f_actualizacion,'Z'),
             'documentoTransaccion', (
                 select json_object(
                     'id', df.id,
                     'uuid', df.uuid,
                     'codigoSerie', df.cod_serie,
                     'codigoNumero', df.cod_numero,
-                    'fechaCreacion', documento_transaccion.f_creacion,
-                    'fechaActualizacion', documento_transaccion.f_actualizacion,
-                    'fechaEmision', df.f_emision,
-                    'fechaAnulacion', df.f_anulacion,
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z'),
+                    'fechaEmision', concat(df.f_emision,'Z'),
+                    'fechaAnulacion', concat(df.f_anulacion,'Z'),
+                    'concepto', df.concepto,
                     'importeNeto', df.importe_neto,
-                    'establecimiento', json_object( 'uuid', df.establecimiento_uuid ),
                     'usuario', json_object( 'uuid', df.usuario_uuid ),
-                    'concepto', documento_transaccion.concepto
+                    'fechaCreacion', concat(df.f_creacion,'Z'),
+                    'fechaActualizacion', concat(df.f_actualizacion,'Z')
                 )
                 from documento_transaccion
                 left join documento_fuente df on df.id = documento_transaccion.id
                 where documento_transaccion.id = documento_movimiento.documento_transaccion_id
             ),
-
             'notas', (
                 select json_arrayagg(json_object(
                     'id', nota.id,
@@ -1796,9 +1808,10 @@ select json_object(
                         json_object(
                             'type', 'SalidaBienConsumoValorNuevo',
                             'id', salida_bien_consumo.id,
+                            'uuid', salida_bien_consumo.uuid,
                             'almacen', json_object( 'uuid', salida_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', salida_bien_consumo.bien_consumo_uuid ),
-                            'cantidad', salida_bien_consumo.cant,
+                            'cantidadSaliente', salida_bien_consumo.cant,
                             'importePrecioUnitario', salida_bien_consumo.precio_uni
                         ) as json
                     from salida_bien_consumo_valor_nuevo
@@ -1811,9 +1824,10 @@ select json_object(
                         json_object(
                             'type', 'SalidaBienConsumoValorEntrada',
                             'id', salida_bien_consumo.id,
+                            'uuid', salida_bien_consumo.uuid,
                             'almacen', json_object( 'uuid', salida_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', salida_bien_consumo.bien_consumo_uuid ),
-                            'cantidad', salida_bien_consumo.cant,
+                            'cantidadSaliente', salida_bien_consumo.cant,
                             'importePrecioUnitario', salida_bien_consumo.precio_uni,
                             'entrada', json_object( 'id', salida_bien_consumo_valor_entrada.entrada_bien_consumo_id )
                         ) as json
@@ -1834,7 +1848,7 @@ select json_object(
         and documento_movimiento.documento_transaccion_id = documento_transaccion.id
     ),
         
-    'fechaCompromiso', nota_venta.f_compromiso,
+    'fechaCompromiso', concat(nota_venta.f_compromiso,'Z'),
     'cliente', json_object( 'uuid', nota_venta.cliente_uuid ),
     'prioridad', (
         select json_object(
@@ -1857,9 +1871,10 @@ select json_object(
     'salidasBienConsumo', (
         select json_arrayagg(json_object(
             'id', salida_bien_consumo.id,
+            'uuid', salida_bien_consumo.uuid,
             'almacen', json_object( 'uuid', salida_bien_consumo.almacen_uuid ),
             'bienConsumo', json_object( 'uuid', salida_bien_consumo.bien_consumo_uuid ),
-            'cantidad', salida_bien_consumo.cant,
+            'cantidadSaliente', salida_bien_consumo.cant,
             'importePrecioUnitario', salida_bien_consumo.precio_uni,
             'importeDescuento', nv_salida_bien_consumo.descuento
         )) as json
@@ -1880,6 +1895,7 @@ select json_object(
             'recursosServicio', (
                 select json_arrayagg(json_object(
                     'id', nv_servicio_reparacion_recurso_servicio.id,
+                    'uuid', nv_servicio_reparacion_recurso_servicio.uuid,
                     'categoriaReparacion', (
                         select json_object(
                             'id', nv_categoria_reparacion.id,
@@ -1889,8 +1905,8 @@ select json_object(
                         where nv_categoria_reparacion.id = nv_servicio_reparacion_recurso_servicio.nv_categoria_reparacion_id
                     ),
                     'descripcion', nv_servicio_reparacion_recurso_servicio.descripcion,
-                    'fechaInicio', nv_servicio_reparacion_recurso_servicio.f_inicio,
-                    'fechaFinal', nv_servicio_reparacion_recurso_servicio.f_final,
+                    'fechaInicio', concat(nv_servicio_reparacion_recurso_servicio.f_inicio,'Z'),
+                    'fechaFinal', concat(nv_servicio_reparacion_recurso_servicio.f_final,'Z'),
                     'importePrecio', nv_servicio_reparacion_recurso_servicio.precio
                 ))
                 from nv_servicio_reparacion_recurso_servicio
@@ -1899,6 +1915,7 @@ select json_object(
             'recursosBienConsumo', (
                 select json_arrayagg(json_object(
                     'id', nv_servicio_reparacion_recurso_bien_consumo.id,
+                    'uuid', nv_servicio_reparacion_recurso_bien_consumo.uuid,
                     'fecha', nv_servicio_reparacion_recurso_bien_consumo.fecha,
                     'almacen', json_object( 'uuid', nv_servicio_reparacion_recurso_bien_consumo.almacen_uuid ),
                     'bienConsumo', json_object( 'uuid', nv_servicio_reparacion_recurso_bien_consumo.bien_consumo_uuid ),
@@ -1917,6 +1934,7 @@ select json_object(
     'entradasEfectivo', (
         select json_arrayagg(json_object(
             'id', entrada_efectivo.id,
+            'uuid', entrada_efectivo.uuid,
             'numero', nv_entrada_efectivo.numero,
             'fecha', nv_entrada_efectivo.fecha,
             'medioTransferencia', (

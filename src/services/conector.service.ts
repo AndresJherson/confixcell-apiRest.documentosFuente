@@ -14,7 +14,7 @@ export class ConectorService {
     async beginTransaction()
     {
         return await this.sequelize.transaction({
-            isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE
+            isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
         })
     }
 

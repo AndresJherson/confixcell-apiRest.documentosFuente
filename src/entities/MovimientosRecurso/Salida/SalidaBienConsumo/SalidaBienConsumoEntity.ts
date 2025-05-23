@@ -14,6 +14,13 @@ export class SalidaBienConsumoEntity extends Model<SalidaBienConsumoEntity, Part
         allowNull: false
     })
     declare id: number;
+
+    @Column({
+        type: DataType.STRING(50),
+        allowNull: false,
+        unique: true
+    })
+    declare uuid: string;
     
     @ForeignKey(() => DocumentoFuenteEntity)
     @Column({
@@ -43,7 +50,7 @@ export class SalidaBienConsumoEntity extends Model<SalidaBienConsumoEntity, Part
         defaultValue: 0,
         field: 'cant'
     })
-    declare cantidad: number;
+    declare cantidadSaliente: number;
     
     @Column({
         type: DataType.DECIMAL(20, 2),

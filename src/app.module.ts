@@ -99,6 +99,16 @@ import { HttpModule } from '@nestjs/axios';
             autoLoadModels: true,
             define: {
                 timestamps: false
+            },
+            dialectOptions: {
+                typeCast: (field, next) => {
+                    if (field.type === 'DATETIME' || field.type === 'DATE' || field.type === 'TIMESTAMP') {
+                        const val = field.string();
+                        if (field.type === 'DATETIME' && val ) return `${val} Z`
+                        else return val;
+                    }
+                    return next();
+                }
             }
         }),
         SequelizeModule.forFeature([
