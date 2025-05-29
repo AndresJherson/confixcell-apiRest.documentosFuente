@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { SequelizeModule } from '@nestjs/sequelize';
 import { ConectorService } from './services/conector.service';
 import { DbPresetService } from './repositories/preset/db-preset.service';
 import { NotaTransaccionEntradaService } from './repositories/documentos-fuente/documentos-transaccion/nota-transaccion-entrada/nota-transaccion-entrada.service';
@@ -17,47 +15,6 @@ import { EntradaEfectivoService } from './repositories/movimientos-recurso/entra
 import { EntradaBienConsumoService } from './repositories/movimientos-recurso/entrada/entrada-bien-consumo.service';
 import { SalidaBienConsumoService } from './repositories/movimientos-recurso/salida/salida-bien-consumo.service';
 import { SalidaEfectivoService } from './repositories/movimientos-recurso/salida/salida-efectivo.service';
-import { DocumentoFuenteEntity } from './entities/DocumentosFuente/DocumentoFuenteEntity';
-import { DocumentoTransaccionEntity } from './entities/DocumentosFuente/DocumentosTransaccion/DocumentoTransaccionEntity';
-import { DocumentoMovimientoEntity } from './entities/DocumentosFuente/DocumentosMovimiento/DocumentoMovimientoEntity';
-import { NotaEntity } from './entities/DocumentosFuente/Nota/NotaEntity';
-import { LiquidacionTipoEntity } from './entities/DocumentosFuente/DocumentosTransaccion/LiquidactionTipoEntity';
-import { NotaTransaccionEntradaEntity } from './entities/DocumentosFuente/DocumentosTransaccion/NotaTransaccionEntrada/NotaTransaccionEntradaEntity';
-import { NteCreditoEntity } from './entities/DocumentosFuente/DocumentosTransaccion/NotaTransaccionEntrada/NteCreditoEntity';
-import { NteCuotaEntity } from './entities/DocumentosFuente/DocumentosTransaccion/NotaTransaccionEntrada/NteCuotaEntity';
-import { NteDetalleEntity } from './entities/DocumentosFuente/DocumentosTransaccion/NotaTransaccionEntrada/NteDetalleEntity';
-import { ComprobanteTipoEntity } from './entities/DocumentosFuente/DocumentosTransaccion/NotaTransaccionEntrada/ComprobanteTipoEntity';
-import { NotaTransaccionSalidaEntity } from './entities/DocumentosFuente/DocumentosTransaccion/NotaTransaccionSalida/NotaTransaccionSalidaEntity';
-import { NtsCreditoEntity } from './entities/DocumentosFuente/DocumentosTransaccion/NotaTransaccionSalida/NtsCreditoEntity';
-import { NtsCuotaEntity } from './entities/DocumentosFuente/DocumentosTransaccion/NotaTransaccionSalida/NtsCuotaEntity';
-import { NtsDetalleEntity } from './entities/DocumentosFuente/DocumentosTransaccion/NotaTransaccionSalida/NtsDetalleEntity';
-import { NotaVentaEntity } from './entities/DocumentosFuente/DocumentosTransaccion/NotaVenta/NotaVentaEntity';
-import { NvEstadoEntity } from './entities/DocumentosFuente/DocumentosTransaccion/NotaVenta/NvEstadoEntity';
-import { NvPrioridadEntity } from './entities/DocumentosFuente/DocumentosTransaccion/NotaVenta/NvPrioridadEntity';
-import { NvEntradaEfectivoEntity } from './entities/DocumentosFuente/DocumentosTransaccion/NotaVenta/EntradaEfectivo/NvEntradaEfectivoEntity';
-import { NvSalidaBienConsumoEntity } from './entities/DocumentosFuente/DocumentosTransaccion/NotaVenta/SalidaBienConsumo/NvSalidaBienConsumoEntity';
-import { NvServicioReparacionEntity } from './entities/DocumentosFuente/DocumentosTransaccion/NotaVenta/SalidaProduccionServicioReparacion/NvServicioReparacionEntity';
-import { NvServicioReparacionRecursoServicioEntity } from './entities/DocumentosFuente/DocumentosTransaccion/NotaVenta/SalidaProduccionServicioReparacion/NvServicioReparacionRecursoServicioEntity';
-import { NvServicioReparacionRecursoBienConsumoEntity } from './entities/DocumentosFuente/DocumentosTransaccion/NotaVenta/SalidaProduccionServicioReparacion/NvServicioReparacionRecursoBienConsumoEntity';
-import { NvCategoriaReparacionEntity } from './entities/DocumentosFuente/DocumentosTransaccion/NotaVenta/SalidaProduccionServicioReparacion/NvCategoriaReparacionEntity';
-import { MedioTransferenciaEntity } from './entities/MovimientosRecurso/MedioTransferenciaEntity';
-import { EntradaEfectivoEntity } from './entities/MovimientosRecurso/Entrada/EntradaEfectivo/EntradaEfectivoEntity';
-import { EntradaEfectivoCreditoEntity } from './entities/MovimientosRecurso/Entrada/EntradaEfectivo/EntradaEfectivoCreditoEntity';
-import { EntradaEfectivoCuotaEntity } from './entities/MovimientosRecurso/Entrada/EntradaEfectivo/EntradaEfectivoCuotaEntity';
-import { EntradaBienConsumoEntity } from './entities/MovimientosRecurso/Entrada/EntradaBienConsumo/EntradaBienConsumoEntity';
-import { EntradaEfectivoContadoEntity } from './entities/MovimientosRecurso/Entrada/EntradaEfectivo/EntradaEfectivoContadoEntity';
-import { EntradaBienConsumoValorNuevoEntity } from './entities/MovimientosRecurso/Entrada/EntradaBienConsumo/EntradaBienConsumoValorNuevoEntity';
-import { EntradaBienConsumoValorSalidaEntity } from './entities/MovimientosRecurso/Entrada/EntradaBienConsumo/EntradaBienConsumoValorSalidaEntity';
-import { SalidaEfectivoEntity } from './entities/MovimientosRecurso/Salida/SalidaEfectivo/SalidaEfectivoEntity';
-import { SalidaEfectivoContadoEntity } from './entities/MovimientosRecurso/Salida/SalidaEfectivo/SalidaEfectivoContadoEntity';
-import { SalidaEfectivoCreditoEntity } from './entities/MovimientosRecurso/Salida/SalidaEfectivo/SalidaEfectivoCreditoEntity';
-import { SalidaEfectivoCuotaEntity } from './entities/MovimientosRecurso/Salida/SalidaEfectivo/SalidaEfectivoCuotaEntity';
-import { SalidaBienConsumoEntity } from './entities/MovimientosRecurso/Salida/SalidaBienConsumo/SalidaBienConsumoEntity';
-import { SalidaBienConsumoValorNuevoEntity } from './entities/MovimientosRecurso/Salida/SalidaBienConsumo/SalidaBienConsumoValorNuevoEntity';
-import { SalidaBienConsumoValorEntradaEntity } from './entities/MovimientosRecurso/Salida/SalidaBienConsumo/SalidaBienConsumoValorEntradaEntity';
-import { SalidaProduccionEntity } from './entities/MovimientosRecurso/Salida/SalidaProduccion/SalidaProduccionEntity';
-import { SalidaProduccionServicioEntity } from './entities/MovimientosRecurso/Salida/SalidaProduccion/SalidaProduccionServicioEntity';
-import { DbPresetEntity } from './entities/Preset/DbPresetEntity';
 import { NotaService } from './repositories/documentos-fuente/nota/nota.service';
 import { DocumentoEntradaEfectivoController } from './controllers/documentos-fuente/documentos-movimiento/entrada/documento-entrada-efectivo.controller';
 import { SalidaProduccionService } from './repositories/movimientos-recurso/salida/salida-produccion.service';
@@ -85,88 +42,18 @@ import { LiquidacionTipoController } from './controllers/documentos-fuente/docum
 import { LiquidacionTipoService } from './repositories/documentos-fuente/liquidacion-tipo.service';
 import { IntegridadController } from './controllers/integridad/integridad.controller';
 import { IntegridadService } from './services/integridad.service';
-import { HttpModule } from '@nestjs/axios';
+import { MovimientoRecursoService } from './repositories/movimientos-recurso/movimiento-recurso.service';
+import { InfrastructureModule } from './infrastructure/infrastructure.module';
+import { DomainModule } from './domain/domain.module';
+import { InterfaceModule } from './interface/interface.module';
 
 @Module({
     imports: [
-        ConfigModule.forRoot(),
-        SequelizeModule.forRoot({
-            dialect: 'mysql',
-            host: process.env.DB_HOST,
-            database: process.env.DB_NAME,
-            username: process.env.DB_USER,
-            password: process.env.DB_PASSWORD,
-            autoLoadModels: true,
-            define: {
-                timestamps: false
-            },
-            dialectOptions: {
-                typeCast: (field, next) => {
-                    if (field.type === 'DATETIME' || field.type === 'DATE' || field.type === 'TIMESTAMP') {
-                        const val = field.string();
-                        if (field.type === 'DATETIME' && val ) return `${val} Z`
-                        else return val;
-                    }
-                    return next();
-                }
-            }
-        }),
-        SequelizeModule.forFeature([
-            DocumentoFuenteEntity,
-            DocumentoTransaccionEntity,
-            DocumentoMovimientoEntity,
-            NotaEntity,
-            LiquidacionTipoEntity,
-
-            NotaTransaccionEntradaEntity,
-            NteDetalleEntity,
-            NteCreditoEntity,
-            NteCuotaEntity,
-            ComprobanteTipoEntity,
-
-            NotaTransaccionSalidaEntity,
-            NtsDetalleEntity,
-            NtsCreditoEntity,
-            NtsCuotaEntity,
-
-            NotaVentaEntity,
-            NvEstadoEntity,
-            NvPrioridadEntity,
-            NvEntradaEfectivoEntity,
-            NvSalidaBienConsumoEntity,
-            NvServicioReparacionEntity,
-            NvServicioReparacionRecursoServicioEntity,
-            NvServicioReparacionRecursoBienConsumoEntity,
-            NvCategoriaReparacionEntity,
-
-            MedioTransferenciaEntity,
-
-            EntradaEfectivoEntity,
-            EntradaEfectivoContadoEntity,
-            EntradaEfectivoCreditoEntity,
-            EntradaEfectivoCuotaEntity,
-
-            EntradaBienConsumoEntity,
-            EntradaBienConsumoValorNuevoEntity,
-            EntradaBienConsumoValorSalidaEntity,
-
-            SalidaEfectivoEntity,
-            SalidaEfectivoContadoEntity,
-            SalidaEfectivoCreditoEntity,
-            SalidaEfectivoCuotaEntity,
-
-            SalidaBienConsumoEntity,
-            SalidaBienConsumoValorNuevoEntity,
-            SalidaBienConsumoValorEntradaEntity,
-
-            SalidaProduccionEntity,
-            SalidaProduccionServicioEntity,
-
-            DbPresetEntity
-        ]),
-        HttpModule
+        InfrastructureModule,
+        DomainModule,
+        InterfaceModule
     ],
     controllers: [DocumentoFuenteController, DocumentoMovimientoController, DocumentoTransaccionController, NotaVentaController, NvCategoriaReparacionController, NvEstadoController, NvPrioridadController, NotaTransaccionEntradaController, ComprobanteTipoController, NotaTransaccionSalidaController, DocumentoEntradaEfectivoController, DocumentoEntradaBienConsumoController, DocumentoSalidaEfectivoController, DocumentoSalidaBienConsumoController, NotaController, MedioTransferenciaController, LiquidacionTipoController, IntegridadController],
-    providers: [ConectorService, DbPresetService, NotaTransaccionEntradaService, NotaTransaccionSalidaService, NotaVentaService, DocumentoEntradaEfectivoService, DocumentoEntradaBienConsumoService, DocumentoSalidaBienConsumoService, DocumentoSalidaEfectivoService, DocumentoMovimientoService, DocumentoTransaccionService, DocumentoFuenteService, EntradaEfectivoService, EntradaBienConsumoService, SalidaBienConsumoService, SalidaEfectivoService, NotaService, SalidaProduccionService, MedioTransferenciaService, ComprobanteTipoService, NvPrioridadService, NvEstadoService, NvCategoriaReparacionService, LiquidacionTipoService, IntegridadService],
+    providers: [ConectorService, DbPresetService, NotaTransaccionEntradaService, NotaTransaccionSalidaService, NotaVentaService, DocumentoEntradaEfectivoService, DocumentoEntradaBienConsumoService, DocumentoSalidaBienConsumoService, DocumentoSalidaEfectivoService, DocumentoMovimientoService, DocumentoTransaccionService, DocumentoFuenteService, EntradaEfectivoService, EntradaBienConsumoService, SalidaBienConsumoService, SalidaEfectivoService, NotaService, SalidaProduccionService, MedioTransferenciaService, ComprobanteTipoService, NvPrioridadService, NvEstadoService, NvCategoriaReparacionService, LiquidacionTipoService, IntegridadService, MovimientoRecursoService],
 })
 export class AppModule { }
