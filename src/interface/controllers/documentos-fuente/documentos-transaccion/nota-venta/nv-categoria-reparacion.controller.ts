@@ -1,8 +1,8 @@
 import { NotaVentaCategoriaReparacion } from '@confixcell/modelos';
 import { Controller, Delete, Get, Post, Put } from '@nestjs/common';
 import { ApiBody } from '@nestjs/swagger';
-import { SessionDecorator } from 'src/decorators/session.decorator';
-import { NvCategoriaReparacionService } from 'src/repositories/documentos-fuente/documentos-transaccion/nota-venta/nv-categoria-reparacion.service';
+import { NvCategoriaReparacionService } from 'src/domain/application/documentos-fuente/documentos-transaccion/nota-venta/nv-categoria-reparacion.service';
+import { SessionDecorator } from 'src/interface/decorators/session.decorator';
 import { SessionData } from 'src/utils/interfaces';
 
 @Controller('nvCategoriaReparacion')
@@ -24,12 +24,12 @@ export class NvCategoriaReparacionController {
 
 
     @ApiBody({})
-    @Post('getObjectById')
-    async getObjectById(
+    @Post('getObjectByUuid')
+    async getObjectByUuid(
         @SessionDecorator() sessionData: SessionData
     )
     {
-        return await this.nvCategoriaReparacionService.getObjectById( sessionData, new NotaVentaCategoriaReparacion({ ...sessionData.json }) );
+        return await this.nvCategoriaReparacionService.getObjectByUuid( sessionData, new NotaVentaCategoriaReparacion({ ...sessionData.json }) );
     }
 
 

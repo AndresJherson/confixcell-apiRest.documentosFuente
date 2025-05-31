@@ -1,8 +1,8 @@
 import { Cliente, NotaVenta, Usuario } from '@confixcell/modelos';
 import { Controller, Delete, Get, Post, Put } from '@nestjs/common';
 import { ApiBody } from '@nestjs/swagger';
-import { SessionDecorator } from 'src/decorators/session.decorator';
-import { NotaVentaService } from 'src/repositories/documentos-fuente/documentos-transaccion/nota-venta/nota-venta.service';
+import { NotaVentaService } from 'src/domain/application/documentos-fuente/documentos-transaccion/nota-venta/nota-venta.service';
+import { SessionDecorator } from 'src/interface/decorators/session.decorator';
 import { SessionData } from 'src/utils/interfaces';
 
 @Controller('notaVenta')
@@ -24,32 +24,32 @@ export class NotaVentaController {
 
 
     @ApiBody({})
-    @Post('getCollectionByUsuarioId')
-    async getCollectionByUsuarioId(
+    @Post('getCollectionByUsuarioUuid')
+    async getCollectionByUsuarioUuid(
         @SessionDecorator() sessionData: SessionData
     )
     {
-        return await this.notaVentaService.getCollectionByUsuarioId( sessionData, new Usuario( sessionData.json ) );
+        return await this.notaVentaService.getCollectionByUsuarioUuid( sessionData, new Usuario( sessionData.json ) );
     }
 
 
     @ApiBody({})
-    @Post('getCollectionByClienteId')
-    async getCollectionByClienteId(
+    @Post('getCollectionByClienteUuid')
+    async getCollectionByClienteUuid(
         @SessionDecorator() sessionData: SessionData
     )
     {
-        return await this.notaVentaService.getCollectionByClienteId( sessionData, Cliente.initialize([ sessionData.json ])[0] );
+        return await this.notaVentaService.getCollectionByClienteUuid( sessionData, Cliente.initialize([ sessionData.json ])[0] );
     }
 
 
     @ApiBody({})
-    @Post('getObjectById')
-    async getObjectById(
+    @Post('getObjectByUuid')
+    async getObjectByUuid(
         @SessionDecorator() sessionData: SessionData
     )
     {
-        return await this.notaVentaService.getObjectById( sessionData, new NotaVenta( sessionData.json ) );
+        return await this.notaVentaService.getObjectByUuid( sessionData, new NotaVenta( sessionData.json ) );
     }
 
 

@@ -1,8 +1,8 @@
 import { MedioTransferencia } from '@confixcell/modelos';
 import { Controller, Delete, Get, Post, Put } from '@nestjs/common';
 import { ApiBody } from '@nestjs/swagger';
-import { SessionDecorator } from 'src/decorators/session.decorator';
-import { MedioTransferenciaService } from 'src/repositories/documentos-fuente/medio-transferencia.service';
+import { MedioTransferenciaService } from 'src/domain/application/documentos-fuente/medio-transferencia.service';
+import { SessionDecorator } from 'src/interface/decorators/session.decorator';
 import { SessionData } from 'src/utils/interfaces';
 
 @Controller('medioTransferencia')
@@ -24,12 +24,12 @@ export class MedioTransferenciaController {
 
 
     @ApiBody({})
-    @Post('getObjectById')
-    async getObjectById(
+    @Post('getObjectByUuid')
+    async getObjectByUuid(
         @SessionDecorator() sessionData: SessionData
     )
     {
-        return await this.medioTransferenciaService.getObjectById( sessionData, new MedioTransferencia({ ...sessionData.json }) );
+        return await this.medioTransferenciaService.getObjectByUuid( sessionData, new MedioTransferencia({ ...sessionData.json }) );
     }
 
 

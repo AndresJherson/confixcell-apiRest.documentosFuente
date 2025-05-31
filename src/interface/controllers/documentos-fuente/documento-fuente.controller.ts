@@ -1,8 +1,8 @@
 import { DocumentoFuente } from '@confixcell/modelos';
 import { Controller, Get, Post } from '@nestjs/common';
 import { ApiBody } from '@nestjs/swagger';
-import { SessionDecorator } from 'src/decorators/session.decorator';
-import { DocumentoFuenteService } from 'src/repositories/documentos-fuente/documento-fuente.service';
+import { DocumentoFuenteService } from 'src/domain/application/documentos-fuente/documento-fuente.service';
+import { SessionDecorator } from 'src/interface/decorators/session.decorator';
 import { SessionData } from 'src/utils/interfaces';
 
 @Controller('documentoFuente')
@@ -24,11 +24,11 @@ export class DocumentoFuenteController {
 
 
     @ApiBody({})
-    @Post('getObjectById')
-    async getObjectById(
+    @Post('getObjectByUuid')
+    async getObjectByUuid(
         @SessionDecorator() sessionData: SessionData
     )
     {
-        return await this.documentoFuenteService.getObjectById( sessionData, DocumentoFuente.initialize([ sessionData.json ])[0] );
+        return await this.documentoFuenteService.getObjectByUuid( sessionData, DocumentoFuente.initialize([ sessionData.json ])[0] );
     }
 }

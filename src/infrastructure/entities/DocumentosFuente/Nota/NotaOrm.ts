@@ -10,6 +10,9 @@ export class NotaOrm extends Model<NotaOrm, Partial<NotaOrm>> {
         allowNull: false
     })
     declare id: number;
+
+    @Column({ type: DataType.STRING(50), allowNull: false, unique: true })
+    declare uuid: string;
     
     @ForeignKey(() => DocumentoFuenteOrm)
     @Column({

@@ -1,10 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ConectorService } from './services/conector.service';
-import { AllExceptionFilter } from './filters/all-exception.filter';
-import { TransactionInterceptor } from './interceptors/transaction.interceptor';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger } from '@nestjs/common';
+import { ConectorService } from './infrastructure/services/conector.service';
+import { AllExceptionFilter } from './interface/filters/all-exception.filter';
+import { TransactionInterceptor } from './interface/interceptors/transaction.interceptor';
+
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);

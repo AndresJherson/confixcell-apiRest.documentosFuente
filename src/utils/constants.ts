@@ -1,6 +1,6 @@
 export enum ERROR
 {
-    ID_INVALIDATE = 'Id invalido',
+    UUID_INVALIDATE = 'Uuid invalido',
     NON_CREATE = 'Ningun dato ha sido creado',
     NON_READ = 'Ningun dato ha sido leido',
     NON_UPDATE = 'Ningun dato ha sido actualizado',

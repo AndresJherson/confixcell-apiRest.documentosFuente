@@ -8,6 +8,9 @@ export class MedioTransferenciaOrm extends Model<MedioTransferenciaOrm, Partial<
         allowNull: false
     })
     declare id: number;
+
+    @Column({ type: DataType.STRING(50), allowNull: false, unique: true })
+    declare uuid: string;
     
     @Column({
         type: DataType.STRING(100),

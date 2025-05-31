@@ -1,8 +1,8 @@
 import { DocumentoSalidaEfectivo } from '@confixcell/modelos';
 import { Controller, Delete, Get, Post, Put } from '@nestjs/common';
 import { ApiBody } from '@nestjs/swagger';
-import { SessionDecorator } from 'src/decorators/session.decorator';
-import { DocumentoSalidaEfectivoService } from 'src/repositories/documentos-fuente/documentos-movimiento/salida/documento-salida-efectivo.service';
+import { DocumentoSalidaEfectivoService } from 'src/domain/application/documentos-fuente/documentos-movimiento/salida/documento-salida-efectivo.service';
+import { SessionDecorator } from 'src/interface/decorators/session.decorator';
 import { SessionData } from 'src/utils/interfaces';
 
 @Controller('documentoSalidaEfectivo')
@@ -24,12 +24,12 @@ export class DocumentoSalidaEfectivoController {
 
 
     @ApiBody({})
-    @Post('getObjectById')
-    async getObjectById(
+    @Post('getObjectByUuid')
+    async getObjectByUuid(
         @SessionDecorator() sessionData: SessionData
     )
     {
-        return await this.documentoSalidaEfectivoService.getObjectById( sessionData, new DocumentoSalidaEfectivo( sessionData.json ) );
+        return await this.documentoSalidaEfectivoService.getObjectByUuid( sessionData, new DocumentoSalidaEfectivo( sessionData.json ) );
     }
 
 

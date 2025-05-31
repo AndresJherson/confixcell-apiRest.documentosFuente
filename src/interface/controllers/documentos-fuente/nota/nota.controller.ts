@@ -1,8 +1,8 @@
 import { DocumentoFuente, Nota } from '@confixcell/modelos';
 import { Controller, Delete, Post } from '@nestjs/common';
 import { ApiBody } from '@nestjs/swagger';
-import { SessionDecorator } from 'src/decorators/session.decorator';
-import { NotaService } from 'src/repositories/documentos-fuente/nota/nota.service';
+import { NotaService } from 'src/domain/application/documentos-fuente/nota/nota.service';
+import { SessionDecorator } from 'src/interface/decorators/session.decorator';
 import { SessionData } from 'src/utils/interfaces';
 
 @Controller('nota')
@@ -15,22 +15,22 @@ export class NotaController {
 
 
     @ApiBody({})
-    @Post('getCollectionByDocumentoId')
-    async getCollectionByDocumentoId(
+    @Post('getCollectionByDocumentoUuid')
+    async getCollectionByDocumentoUuid(
         @SessionDecorator() sessionData: SessionData
     )
     {
-        return await this.notaService.getCollectionByDocumentoId( sessionData, DocumentoFuente.initialize([ sessionData.json ])[0] );
+        return await this.notaService.getCollectionByDocumentoUuid( sessionData, DocumentoFuente.initialize([ sessionData.json ])[0] );
     }
 
 
     @ApiBody({})
-    @Post('getObjectById')
-    async getObjectById(
+    @Post('getObjectByUuid')
+    async getObjectByUuid(
         @SessionDecorator() sessionData: SessionData
     )
     {
-        return await this.notaService.getObjectById( sessionData, new Nota({ ...sessionData.json }) );
+        return await this.notaService.getObjectByUuid( sessionData, new Nota({ ...sessionData.json }) );
     }
 
 

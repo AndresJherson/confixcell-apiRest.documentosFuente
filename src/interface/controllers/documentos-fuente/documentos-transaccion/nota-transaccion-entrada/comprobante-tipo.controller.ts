@@ -1,8 +1,8 @@
 import { ComprobanteTipo } from '@confixcell/modelos';
 import { Controller, Delete, Get, Post, Put } from '@nestjs/common';
 import { ApiBody } from '@nestjs/swagger';
-import { SessionDecorator } from 'src/decorators/session.decorator';
-import { ComprobanteTipoService } from 'src/repositories/documentos-fuente/documentos-transaccion/nota-transaccion-entrada/comprobante-tipo.service';
+import { ComprobanteTipoService } from 'src/domain/application/documentos-fuente/documentos-transaccion/nota-transaccion-entrada/comprobante-tipo.service';
+import { SessionDecorator } from 'src/interface/decorators/session.decorator';
 import { SessionData } from 'src/utils/interfaces';
 
 @Controller('comprobanteTipo')
@@ -24,12 +24,12 @@ export class ComprobanteTipoController {
 
 
     @ApiBody({})
-    @Post('getObjectById')
-    async getObjectById(
+    @Post('getObjectByUuid')
+    async getObjectByUuid(
         @SessionDecorator() sessionData: SessionData
     )
     {
-        return await this.comprobanteTipoService.getObjectById( sessionData, new ComprobanteTipo({ ...sessionData.json }) );
+        return await this.comprobanteTipoService.getObjectByUuid( sessionData, new ComprobanteTipo({ ...sessionData.json }) );
     }
 
 

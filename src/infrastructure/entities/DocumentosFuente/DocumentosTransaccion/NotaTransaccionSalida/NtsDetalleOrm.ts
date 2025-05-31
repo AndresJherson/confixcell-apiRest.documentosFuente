@@ -7,6 +7,9 @@ export class NtsDetalleOrm extends Model<NtsDetalleOrm, Partial<NtsDetalleOrm>>
     @Column({ type: DataType.INTEGER, primaryKey: true })
     declare id: number;
 
+    @Column({ type: DataType.STRING(50), allowNull: false, unique: true })
+    declare uuid: string;
+
     @ForeignKey(() => NotaTransaccionSalidaOrm)
     @Column({ type: DataType.INTEGER, allowNull: false, field: 'nota_transaccion_salida_id' })
     declare notaTransaccionSalidaId: number;

@@ -7,6 +7,9 @@ export class NtsCuotaOrm extends Model<NtsCuotaOrm, Partial<NtsCuotaOrm>>
     @Column({ type: DataType.INTEGER, primaryKey: true })
     declare id: number;
 
+    @Column({ type: DataType.STRING(50), allowNull: false, unique: true })
+    declare uuid: string;
+
     @ForeignKey(() => NtsCreditoOrm)
     @Column({ type: DataType.INTEGER, allowNull: false, field: 'nts_credito_id' })
     declare ntsCreditoId: number;

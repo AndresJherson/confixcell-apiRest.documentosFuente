@@ -3,7 +3,7 @@ create database confixcell_documentos_fuente charset utf8mb4 collate utf8mb4_bin
 use confixcell_documentos_fuente;
 
 CREATE TABLE documento_fuente (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
 uuid VARCHAR(50) NOT NULL UNIQUE,
 cod_serie VARCHAR(50),
 cod_numero INT,
@@ -16,7 +16,8 @@ f_creacion DATETIME NOT NULL,
 f_actualizacion DATETIME NOT NULL);
 
 CREATE TABLE nota (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 documento_fuente_id INT NOT NULL,
 fecha DATETIME NOT NULL,
 descripcion VARCHAR(500),
@@ -30,13 +31,14 @@ id INT PRIMARY KEY NOT NULL,
 documento_transaccion_id INT);
 
 CREATE TABLE entrada_efectivo (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
 uuid VARCHAR(50) NOT NULL UNIQUE,
 documento_fuente_id INT NOT NULL,
 valor DECIMAL(20,2) NOT NULL);
 
 CREATE TABLE medio_transferencia (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 nombre VARCHAR(100) NOT NULL UNIQUE);
 
 CREATE TABLE entrada_efectivo_contado (
@@ -48,7 +50,8 @@ id INT PRIMARY KEY NOT NULL,
 tasa_interes_diario DECIMAL(20,2) NOT NULL DEFAULT 0);
 
 CREATE TABLE entrada_efectivo_cuota (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 entrada_efectivo_credito_id INT NOT NULL,
 numero INT NOT NULL DEFAULT 0,
 f_inicio DATETIME NOT NULL,
@@ -59,7 +62,7 @@ interes DECIMAL(20,2) NOT NULL DEFAULT 0,
 saldo DECIMAL(20,2) NOT NULL DEFAULT 0);
 
 CREATE TABLE entrada_bien_consumo (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
 uuid VARCHAR(50) NOT NULL UNIQUE,
 documento_fuente_id INT NOT NULL,
 almacen_uuid VARCHAR(50) NOT NULL,
@@ -83,7 +86,7 @@ id INT NOT NULL,
 salida_produccion_bien_id INT NOT NULL);
 
 CREATE TABLE entrada_bien_capital (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
 uuid VARCHAR(50) NOT NULL UNIQUE,
 documento_fuente_id INT NOT NULL,
 almacen_uuid VARCHAR(50) NOT NULL,
@@ -106,12 +109,13 @@ id INT PRIMARY KEY NOT NULL,
 salida_produccion_bien_id INT NOT NULL);
 
 CREATE TABLE entrada_servicio (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 documento_fuente_id INT NOT NULL,
 servicio_uuid VARCHAR(50) NOT NULL);
 
 CREATE TABLE entrada_servicio_detalle (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
 uuid VARCHAR(50) NOT NULL UNIQUE,
 entrada_servicio_id INT NOT NULL,
 f_inicio DATETIME NOT NULL,
@@ -119,7 +123,7 @@ f_final DATETIME,
 valor DECIMAL(20,2) NOT NULL DEFAULT 0);
 
 CREATE TABLE salida_efectivo (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
 uuid VARCHAR(50) NOT NULL UNIQUE,
 documento_fuente_id INT NOT NULL,
 valor DECIMAL(20,2) NOT NULL DEFAULT 0);
@@ -133,7 +137,8 @@ id INT PRIMARY KEY NOT NULL,
 tasa_interes_diario DECIMAL(20,2) NOT NULL DEFAULT 0);
 
 CREATE TABLE salida_efectivo_cuota (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 salida_efectivo_credito_id INT NOT NULL,
 numero INT NOT NULL DEFAULT 0,
 f_inicio DATETIME NOT NULL,
@@ -144,7 +149,7 @@ interes DECIMAL(20,2) NOT NULL DEFAULT 0,
 saldo DECIMAL(20,2) NOT NULL DEFAULT 0);
 
 CREATE TABLE salida_bien_consumo (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
 uuid VARCHAR(50) NOT NULL UNIQUE,
 documento_fuente_id INT NOT NULL,
 almacen_uuid VARCHAR(50) NOT NULL,
@@ -160,14 +165,14 @@ id INT PRIMARY KEY NOT NULL,
 entrada_bien_consumo_id INT NOT NULL);
 
 CREATE TABLE salida_bien_capital_fijo (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
 uuid VARCHAR(50) NOT NULL UNIQUE,
 documento_fuente_id INT NOT NULL,
 entrada_bien_capital_id INT NOT NULL,
 valor_final DECIMAL(20,2) NOT NULL DEFAULT 0);
 
 CREATE TABLE salida_bien_capital_temporal (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
 uuid VARCHAR(50) NOT NULL UNIQUE,
 documento_fuente_id INT NOT NULL,
 bien_capital_uuid VARCHAR(50) NOT NULL,
@@ -176,12 +181,13 @@ f_final DATETIME,
 precio DECIMAL(20,2) NOT NULL DEFAULT 0);
 
 CREATE TABLE salida_servicio (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 documento_fuente_id INT NOT NULL,
 servicio_uuid VARCHAR(50) NOT NULL);
 
 CREATE TABLE salida_servicio_detalle (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
 uuid VARCHAR(50) NOT NULL UNIQUE,
 salida_servicio_id INT NOT NULL,
 f_inicio DATETIME NOT NULL,
@@ -189,7 +195,8 @@ f_final DATETIME,
 precio DECIMAL(20,2) NOT NULL DEFAULT 0);
 
 CREATE TABLE salida_produccion (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 documento_fuente_id INT NOT NULL,
 precio DECIMAL(20,2) NOT NULL DEFAULT 0);
 
@@ -215,7 +222,8 @@ proveedor_celular BIGINT,
 liquidacion_tipo_id INT NOT NULL);
 
 CREATE TABLE nte_detalle (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 nota_transaccion_entrada_id INT NOT NULL,
 recurso_uuid VARCHAR(50),
 concepto VARCHAR(200),
@@ -225,11 +233,13 @@ descuento DECIMAL(20,2) NOT NULL DEFAULT 0,
 comentario VARCHAR(200));
 
 CREATE TABLE comprobante_tipo (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 nombre VARCHAR(100) NOT NULL UNIQUE);
 
 CREATE TABLE liquidacion_tipo (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 nombre VARCHAR(100) NOT NULL UNIQUE);
 
 CREATE TABLE nte_credito (
@@ -238,7 +248,8 @@ nota_transaccion_entrada_id INT NOT NULL,
 tasa_interes_diario DECIMAL(20,2) NOT NULL DEFAULT 0);
 
 CREATE TABLE nte_cuota (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 nte_credito_id INT NOT NULL,
 numero INT NOT NULL DEFAULT 0,
 f_inicio DATETIME,
@@ -258,7 +269,8 @@ cliente_celular BIGINT,
 liquidacion_tipo_id INT NOT NULL);
 
 CREATE TABLE nts_detalle (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 nota_transaccion_salida_id INT NOT NULL,
 recurso_uuid VARCHAR(50),
 concepto VARCHAR(200),
@@ -273,7 +285,8 @@ nota_transaccion_salida_id INT NOT NULL,
 tasa_interes_diario DECIMAL(20,2) NOT NULL DEFAULT 0);
 
 CREATE TABLE nts_cuota (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 nts_credito_id INT NOT NULL,
 numero INT NOT NULL DEFAULT 0,
 f_inicio DATETIME,
@@ -292,11 +305,13 @@ usuario_tecnico_uuid VARCHAR(50) NOT NULL,
 nv_estado_id INT NOT NULL);
 
 CREATE TABLE nv_prioridad (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 nombre VARCHAR(100) NOT NULL UNIQUE);
 
 CREATE TABLE nv_estado (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 nombre VARCHAR(100) NOT NULL UNIQUE);
 
 CREATE TABLE nv_salida_bien_consumo (
@@ -314,8 +329,8 @@ contrasena VARCHAR(50),
 problema VARCHAR(500));
 
 CREATE TABLE nv_servicio_reparacion_recurso_servicio (
-id INT PRIMARY KEY NOT NULL,
-uuid VARCHAR(50) NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 nv_servicio_reparacion_id INT NOT NULL,
 nv_categoria_reparacion_id INT NOT NULL,
 descripcion VARCHAR(100),
@@ -324,7 +339,7 @@ f_final DATETIME,
 precio DECIMAL(20,2) NOT NULL DEFAULT 0);
 
 CREATE TABLE nv_servicio_reparacion_recurso_bien_consumo (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
 uuid VARCHAR(50) NOT NULL UNIQUE,
 nv_servicio_reparacion_id INT NOT NULL,
 almacen_uuid VARCHAR(50) NOT NULL,
@@ -341,20 +356,23 @@ fecha DATETIME NOT NULL,
 medio_transferencia_id INT NOT NULL);
 
 CREATE TABLE db_preset (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 titulo VARCHAR(100) NOT NULL,
 target VARCHAR(100) NOT NULL UNIQUE,
 valor VARCHAR(100));
 
 CREATE TABLE nv_categoria_reparacion (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 nombre VARCHAR(100) NOT NULL UNIQUE);
 
 CREATE TABLE salida_produccion_bien_standar (
 id INT PRIMARY KEY NOT NULL);
 
 CREATE TABLE salida_produccion_bien_actividad (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 salida_produccion_bien_standar_id INT NOT NULL,
 nombre VARCHAR(100) NOT NULL,
 f_inicio DATETIME NOT NULL,
@@ -364,22 +382,23 @@ CREATE TABLE salida_produccion_servicio_standar (
 id INT PRIMARY KEY NOT NULL);
 
 CREATE TABLE salida_produccion_servicio_actividad (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+uuid VARCHAR(50) NOT NULL UNIQUE,
 salida_produccion_servicio_standar_id INT NOT NULL,
 nombre VARCHAR(100) NOT NULL,
 f_inicio DATETIME NOT NULL,
 f_final DATETIME);
 
 CREATE TABLE salida_produccion_bien_recurso_bien_consumo (
-id INT PRIMARY KEY NOT NULL,
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
 uuid VARCHAR(50) NOT NULL UNIQUE,
 salida_produccion_bien_actividad_id INT NOT NULL,
 bien_consumo_uuid VARCHAR(50) NOT NULL,
 almacen_uuid VARCHAR(50) NOT NULL,
 cant DECIMAL(20,2) NOT NULL DEFAULT 0);
 
-CREATE TABLE salids_produccion_servicio_bien_consumo (
-id INT PRIMARY KEY NOT NULL,
+CREATE TABLE salida_produccion_servicio_bien_consumo (
+id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
 uuid VARCHAR(50) NOT NULL UNIQUE,
 salida_produccion_servicio_actividad_id INT NOT NULL,
 bien_consumo_uuid VARCHAR(50) NOT NULL,
@@ -461,5 +480,5 @@ ALTER	TABLE	salida_produccion_bien_actividad	ADD	CONSTRAINT	fk72	FOREIGN	KEY	(sa
 ALTER	TABLE	salida_produccion_servicio_standar	ADD	CONSTRAINT	fk73	FOREIGN	KEY	(id)	REFERENCES	salida_produccion_servicio(id)	ON	DELETE	CASCADE	ON	UPDATE	NO	ACTION;	
 ALTER	TABLE	salida_produccion_servicio_actividad	ADD	CONSTRAINT	fk74	FOREIGN	KEY	(salida_produccion_servicio_standar_id)	REFERENCES	salida_produccion_servicio_standar(id)	ON	DELETE	CASCADE	ON	UPDATE	NO	ACTION;	
 ALTER	TABLE	salida_produccion_bien_recurso_bien_consumo	ADD	CONSTRAINT	fk75	FOREIGN	KEY	(salida_produccion_bien_actividad_id)	REFERENCES	salida_produccion_bien_actividad(id)	ON	DELETE	CASCADE	ON	UPDATE	NO	ACTION;	
-ALTER	TABLE	salids_produccion_servicio_bien_consumo	ADD	CONSTRAINT	fk76	FOREIGN	KEY	(salida_produccion_servicio_actividad_id)	REFERENCES	salida_produccion_servicio_actividad(id)	ON	DELETE	CASCADE	ON	UPDATE	NO	ACTION;	
+ALTER	TABLE	salida_produccion_servicio_bien_consumo	ADD	CONSTRAINT	fk76	FOREIGN	KEY	(salida_produccion_servicio_actividad_id)	REFERENCES	salida_produccion_servicio_actividad(id)	ON	DELETE	CASCADE	ON	UPDATE	NO	ACTION;	
 alter table documento_fuente add constraint u1 unique (cod_serie, cod_numero);

@@ -6,6 +6,9 @@ export class DbPresetOrm extends Model<DbPresetOrm, Partial<DbPresetOrm>>
     @Column({ type: DataType.INTEGER, primaryKey: true })
     declare id: number;
 
+    @Column({ type: DataType.STRING(50), allowNull: false, unique: true })
+    declare uuid: string;
+
     @Column({ type: DataType.STRING(100), allowNull: false })
     declare titulo: string;
 

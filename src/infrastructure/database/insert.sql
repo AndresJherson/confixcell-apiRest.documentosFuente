@@ -1,39 +1,39 @@
 use confixcell_documentos_fuente;
 
 -- db_preset
-insert into db_preset (id, titulo, target, valor) values
-(1, 'Almacén de productos para Nota de Venta', 'nv_salida_bien_consumo.almacen_uuid', null),
-(2, 'Almacén de recursos de servicio de reparación para Nota de Venta', 'nv_servicio_reparacion_recurso_bien_consumo.almacen_uuid', null);
+insert into db_preset (id, uuid, titulo, target, valor) values
+(1, 'de774ed3-d93a-45c4-abee-60b480e8b828', 'Almacén de productos para Nota de Venta', 'nv_salida_bien_consumo.almacen_uuid', null),
+(2, '926f2f10-2cf2-430f-a2a9-cf9bf0f2818d', 'Almacén de recursos de servicio de reparación para Nota de Venta', 'nv_servicio_reparacion_recurso_bien_consumo.almacen_uuid', null);
 
 -- Insertar datos en tablas de referencia primero
-INSERT INTO comprobante_tipo (id, nombre) VALUES 
-(1, 'Factura'), 
-(2, 'Boleta'),
-(3, 'Nota de crédito');
+INSERT INTO comprobante_tipo (id, uuid, nombre) VALUES 
+(1, 'c98f435d-f736-48a3-bbe9-50d2bab7e62a', 'Factura'), 
+(2, '5561c0ca-8fe0-45f6-85a9-9eb28a92ca7b', 'Boleta'),
+(3, '78ecc239-c821-4b7b-9599-de07c9e7fc7c', 'Nota de crédito');
 
-INSERT INTO liquidacion_tipo (id, nombre) VALUES 
-(1, 'Contado'), 
-(2, 'Crédito');
+INSERT INTO liquidacion_tipo (id, uuid, nombre) VALUES 
+(1, '87ff48f5-40e5-418e-a542-79c19c79dd0e', 'Contado'), 
+(2, '9aef00db-935e-4b9f-848c-d46eec01d071', 'Crédito');
 
-INSERT INTO medio_transferencia (id, nombre) VALUES 
-(1, 'Efectivo'), 
-(2, 'Transferencia Bancaria'),
-(3, 'Tarjeta de crédito');
+INSERT INTO medio_transferencia (id, uuid, nombre) VALUES 
+(1, 'daba561b-7edf-49f7-8880-ad42320d255f', 'Efectivo'), 
+(2, 'b70653f1-d86c-43ad-8266-6f2f80b28adf', 'Transferencia Bancaria'),
+(3, '3b8f0175-b811-48e5-b7d8-23dfadc6249e', 'Tarjeta de crédito');
 
-INSERT INTO nv_prioridad (id, nombre) VALUES 
-(1, 'Alta'), 
-(2, 'Media'),
-(3, 'Baja');
+INSERT INTO nv_prioridad (id, uuid, nombre) VALUES 
+(1, '217bf2e3-5822-4583-9167-8a5592ccaf2c', 'Alta'), 
+(2, '42664e45-07e6-45dc-9206-5a8e39858c46', 'Media'),
+(3, 'd9e47f65-4244-4f1a-9ef6-dc96459ae258', 'Baja');
 
-INSERT INTO nv_estado (id, nombre) VALUES 
-(1, 'Pendiente'), 
-(2, 'En proceso'),
-(3, 'Finalizado');
+INSERT INTO nv_estado (id, uuid, nombre) VALUES 
+(1, '8faffbed-1482-44b9-b5cc-6c743182e36f', 'Pendiente'), 
+(2, '28c2bf3d-83b1-471b-a52d-0021b61d7e80', 'En proceso'),
+(3, 'ada02d69-efb3-418f-88ae-a24142b25b91', 'Finalizado');
 
-INSERT INTO nv_categoria_reparacion (id, nombre) VALUES 
-(1, 'Pantalla'), 
-(2, 'Batería'),
-(3, 'Software');
+INSERT INTO nv_categoria_reparacion (id, uuid, nombre) VALUES 
+(1, '334e16a1-6f95-47a0-926c-a79307646558', 'Pantalla'), 
+(2, '853c91e8-f9f4-49e5-8f72-2a1ff3720e07', 'Batería'),
+(3, 'c74fd439-1edb-420f-9a86-f22c846d1394', 'Software');
 
 
 -- DATOS CON ESTRUCTURA ERRONEA

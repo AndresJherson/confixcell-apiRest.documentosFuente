@@ -1,8 +1,8 @@
 import { DocumentoEntradaBienConsumo } from '@confixcell/modelos';
 import { Controller, Delete, Get, Post, Put } from '@nestjs/common';
 import { ApiBody } from '@nestjs/swagger';
-import { SessionDecorator } from 'src/decorators/session.decorator';
-import { DocumentoEntradaBienConsumoService } from 'src/repositories/documentos-fuente/documentos-movimiento/entrada/documento-entrada-bien-consumo.service';
+import { DocumentoEntradaBienConsumoService } from 'src/domain/application/documentos-fuente/documentos-movimiento/entrada/documento-entrada-bien-consumo.service';
+import { SessionDecorator } from 'src/interface/decorators/session.decorator';
 import { SessionData } from 'src/utils/interfaces';
 
 @Controller('documentoEntradaBienConsumo')
@@ -24,12 +24,12 @@ export class DocumentoEntradaBienConsumoController {
 
 
     @ApiBody({})
-    @Post('getObjectById')
-    async getObjectById(
+    @Post('getObjectByUuid')
+    async getObjectByUuid(
         @SessionDecorator() sessionData: SessionData
     )
     {
-        return await this.documentoEntradaBienConsumoService.getObjectById( sessionData, new DocumentoEntradaBienConsumo( sessionData.json ) );
+        return await this.documentoEntradaBienConsumoService.getObjectByUuid( sessionData, new DocumentoEntradaBienConsumo( sessionData.json ) );
     }
 
 

@@ -1,8 +1,8 @@
 import { NotaTransaccionEntrada, Proveedor, Usuario } from '@confixcell/modelos';
 import { Controller, Delete, Get, Post, Put } from '@nestjs/common';
 import { ApiBody } from '@nestjs/swagger';
-import { SessionDecorator } from 'src/decorators/session.decorator';
-import { NotaTransaccionEntradaService } from 'src/repositories/documentos-fuente/documentos-transaccion/nota-transaccion-entrada/nota-transaccion-entrada.service';
+import { NotaTransaccionEntradaService } from 'src/domain/application/documentos-fuente/documentos-transaccion/nota-transaccion-entrada/nota-transaccion-entrada.service';
+import { SessionDecorator } from 'src/interface/decorators/session.decorator';
 import { SessionData } from 'src/utils/interfaces';
 
 @Controller('notaTransaccionEntrada')
@@ -24,32 +24,32 @@ export class NotaTransaccionEntradaController {
 
 
     @ApiBody({})
-    @Post('getCollectionByUsuarioId')
-    async getCollectionByUsuarioId(
+    @Post('getCollectionByUsuarioUuid')
+    async getCollectionByUsuarioUuid(
         @SessionDecorator() sessionData: SessionData
     )
     {
-        return await this.notaTransaccionEntradaService.getCollectionByUsuarioId( sessionData, new Usuario( sessionData.json ) );
+        return await this.notaTransaccionEntradaService.getCollectionByUsuarioUuid( sessionData, new Usuario( sessionData.json ) );
     }
 
 
     @ApiBody({})
-    @Post('getCollectionByProveedorId')
-    async getCollectionByProveedorId(
+    @Post('getCollectionByProveedorUuid')
+    async getCollectionByProveedorUuid(
         @SessionDecorator() sessionData: SessionData
     )
     {
-        return await this.notaTransaccionEntradaService.getCollectionByProveedorId( sessionData, Proveedor.initialize([ sessionData.json ])[0] );
+        return await this.notaTransaccionEntradaService.getCollectionByProveedorUuid( sessionData, Proveedor.initialize([ sessionData.json ])[0] );
     }
 
 
     @ApiBody({})
-    @Post('getObjectById')
-    async getObjectById(
+    @Post('getObjectByUuid')
+    async getObjectByUuid(
         @SessionDecorator() sessionData: SessionData
     )
     {
-        return await this.notaTransaccionEntradaService.getObjectById( sessionData, new NotaTransaccionEntrada( sessionData.json ) );
+        return await this.notaTransaccionEntradaService.getObjectByUuid( sessionData, new NotaTransaccionEntrada( sessionData.json ) );
     }
 
 

@@ -8,6 +8,9 @@ export class SalidaProduccionOrm extends Model<SalidaProduccionOrm, Partial<Sali
     @Column({ type: DataType.INTEGER, primaryKey: true })
     declare id: number;
 
+    @Column({ type: DataType.STRING(50), allowNull: false, unique: true })
+    declare uuid: string;
+
     @ForeignKey(() => DocumentoFuenteOrm)
     @Column({ type: DataType.INTEGER, allowNull: false, field: 'documento_fuente_id' })
     declare documentoFuenteId: number;

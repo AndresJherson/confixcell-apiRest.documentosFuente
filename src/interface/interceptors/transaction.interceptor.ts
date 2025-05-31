@@ -2,7 +2,7 @@ import { Prop, Usuario } from '@confixcell/modelos';
 import { CallHandler, ExecutionContext, Injectable, InternalServerErrorException, NestInterceptor } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { catchError, from, map, Observable, switchMap, throwError } from 'rxjs';
-import { ConectorService } from 'src/services/conector.service';
+import { ConectorService } from 'src/infrastructure/services/conector.service';
 import { SessionData } from 'src/utils/interfaces';
 
 @Injectable()

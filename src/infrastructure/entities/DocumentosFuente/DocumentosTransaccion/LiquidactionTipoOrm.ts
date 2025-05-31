@@ -9,6 +9,9 @@ export class LiquidacionTipoOrm extends Model<LiquidacionTipoOrm, Partial<Liquid
     })
     declare id: number;
 
+    @Column({ type: DataType.STRING(50), allowNull: false, unique: true })
+    declare uuid: string;
+
     @Column({ 
         type: DataType.STRING(100), 
         allowNull: false, 

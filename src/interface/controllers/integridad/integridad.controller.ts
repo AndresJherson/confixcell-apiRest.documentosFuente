@@ -1,7 +1,7 @@
 import { Controller, Post } from '@nestjs/common';
 import { ApiBody } from '@nestjs/swagger';
-import { SessionDecorator } from 'src/decorators/session.decorator';
-import { IntegridadService } from 'src/services/integridad.service';
+import { IntegridadService } from 'src/infrastructure/services/integridad.service';
+import { SessionDecorator } from 'src/interface/decorators/session.decorator';
 import { SessionData } from 'src/utils/interfaces';
 
 @Controller('integridad')

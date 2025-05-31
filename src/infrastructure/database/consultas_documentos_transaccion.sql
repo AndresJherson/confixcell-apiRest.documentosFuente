@@ -192,6 +192,12 @@ select json_object(
                             'almacen', json_object( 'uuid', entrada_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', entrada_bien_consumo.bien_consumo_uuid ),
                             'cantidadEntrante', entrada_bien_consumo.cant,
+                            'cantidadSaliente', (
+                                select sum(salida_bien_consumo.cant)
+                                from salida_bien_consumo_valor_entrada
+                                left join salida_bien_consumo on salida_bien_consumo.id = salida_bien_consumo_valor_entrada.id
+                                where salida_bien_consumo_valor_entrada.entrada_bien_consumo_id = entrada_bien_consumo.id
+                            ),
                             'importeValorUnitario', entrada_bien_consumo_valor_nuevo.valor_uni
                         ) as json
                     from entrada_bien_consumo_valor_nuevo
@@ -208,6 +214,12 @@ select json_object(
                             'almacen', json_object( 'uuid', entrada_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', entrada_bien_consumo.bien_consumo_uuid ),
                             'cantidadEntrante', entrada_bien_consumo.cant,
+                            'cantidadSaliente', (
+                                select sum(salida_bien_consumo.cant)
+                                from salida_bien_consumo_valor_entrada
+                                left join salida_bien_consumo on salida_bien_consumo.id = salida_bien_consumo_valor_entrada.id
+                                where salida_bien_consumo_valor_entrada.entrada_bien_consumo_id = entrada_bien_consumo.id
+                            ),
                             'salida', json_object( 'id', entrada_bien_consumo_valor_salida.salida_bien_consumo_id )
                         ) as json
                     from entrada_bien_consumo_valor_salida
@@ -393,6 +405,12 @@ select json_object(
                             'almacen', json_object( 'uuid', salida_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', salida_bien_consumo.bien_consumo_uuid ),
                             'cantidadSaliente', salida_bien_consumo.cant,
+                            'cantidadEntrante', (
+                                select sum(entrada_bien_consumo.cant)
+                                from entrada_bien_consumo_valor_salida
+                                left join entrada_bien_consumo on entrada_bien_consumo.id = entrada_bien_consumo_valor_salida.id
+                                where entrada_bien_consumo_valor_salida.salida_bien_consumo_id = salida_bien_consumo.id
+                            ),
                             'importePrecioUnitario', salida_bien_consumo.precio_uni
                         ) as json
                     from salida_bien_consumo_valor_nuevo
@@ -409,6 +427,12 @@ select json_object(
                             'almacen', json_object( 'uuid', salida_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', salida_bien_consumo.bien_consumo_uuid ),
                             'cantidadSaliente', salida_bien_consumo.cant,
+                            'cantidadEntrante', (
+                                select sum(entrada_bien_consumo.cant)
+                                from entrada_bien_consumo_valor_salida
+                                left join entrada_bien_consumo on entrada_bien_consumo.id = entrada_bien_consumo_valor_salida.id
+                                where entrada_bien_consumo_valor_salida.salida_bien_consumo_id = salida_bien_consumo.id
+                            ),
                             'importePrecioUnitario', salida_bien_consumo.precio_uni,
                             'entrada', json_object( 'id', salida_bien_consumo_valor_entrada.entrada_bien_consumo_id )
                         ) as json
@@ -627,6 +651,12 @@ select json_object(
                             'almacen', json_object( 'uuid', entrada_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', entrada_bien_consumo.bien_consumo_uuid ),
                             'cantidadEntrante', entrada_bien_consumo.cant,
+                            'cantidadSaliente', (
+                                select sum(salida_bien_consumo.cant)
+                                from salida_bien_consumo_valor_entrada
+                                left join salida_bien_consumo on salida_bien_consumo.id = salida_bien_consumo_valor_entrada.id
+                                where salida_bien_consumo_valor_entrada.entrada_bien_consumo_id = entrada_bien_consumo.id
+                            ),
                             'importeValorUnitario', entrada_bien_consumo_valor_nuevo.valor_uni
                         ) as json
                     from entrada_bien_consumo_valor_nuevo
@@ -643,6 +673,12 @@ select json_object(
                             'almacen', json_object( 'uuid', entrada_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', entrada_bien_consumo.bien_consumo_uuid ),
                             'cantidadEntrante', entrada_bien_consumo.cant,
+                            'cantidadSaliente', (
+                                select sum(salida_bien_consumo.cant)
+                                from salida_bien_consumo_valor_entrada
+                                left join salida_bien_consumo on salida_bien_consumo.id = salida_bien_consumo_valor_entrada.id
+                                where salida_bien_consumo_valor_entrada.entrada_bien_consumo_id = entrada_bien_consumo.id
+                            ),
                             'salida', json_object( 'id', entrada_bien_consumo_valor_salida.salida_bien_consumo_id )
                         ) as json
                     from entrada_bien_consumo_valor_salida
@@ -828,6 +864,12 @@ select json_object(
                             'almacen', json_object( 'uuid', salida_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', salida_bien_consumo.bien_consumo_uuid ),
                             'cantidadSaliente', salida_bien_consumo.cant,
+                            'cantidadEntrante', (
+                                select sum(entrada_bien_consumo.cant)
+                                from entrada_bien_consumo_valor_salida
+                                left join entrada_bien_consumo on entrada_bien_consumo.id = entrada_bien_consumo_valor_salida.id
+                                where entrada_bien_consumo_valor_salida.salida_bien_consumo_id = salida_bien_consumo.id
+                            ),
                             'importePrecioUnitario', salida_bien_consumo.precio_uni
                         ) as json
                     from salida_bien_consumo_valor_nuevo
@@ -844,6 +886,12 @@ select json_object(
                             'almacen', json_object( 'uuid', salida_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', salida_bien_consumo.bien_consumo_uuid ),
                             'cantidadSaliente', salida_bien_consumo.cant,
+                            'cantidadEntrante', (
+                                select sum(entrada_bien_consumo.cant)
+                                from entrada_bien_consumo_valor_salida
+                                left join entrada_bien_consumo on entrada_bien_consumo.id = entrada_bien_consumo_valor_salida.id
+                                where entrada_bien_consumo_valor_salida.salida_bien_consumo_id = salida_bien_consumo.id
+                            ),
                             'importePrecioUnitario', salida_bien_consumo.precio_uni,
                             'entrada', json_object( 'id', salida_bien_consumo_valor_entrada.entrada_bien_consumo_id )
                         ) as json
@@ -1125,6 +1173,12 @@ select json_object(
                             'almacen', json_object( 'uuid', entrada_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', entrada_bien_consumo.bien_consumo_uuid ),
                             'cantidadEntrante', entrada_bien_consumo.cant,
+                            'cantidadSaliente', (
+                                select sum(salida_bien_consumo.cant)
+                                from salida_bien_consumo_valor_entrada
+                                left join salida_bien_consumo on salida_bien_consumo.id = salida_bien_consumo_valor_entrada.id
+                                where salida_bien_consumo_valor_entrada.entrada_bien_consumo_id = entrada_bien_consumo.id
+                            ),
                             'importeValorUnitario', entrada_bien_consumo_valor_nuevo.valor_uni
                         ) as json
                     from entrada_bien_consumo_valor_nuevo
@@ -1141,6 +1195,12 @@ select json_object(
                             'almacen', json_object( 'uuid', entrada_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', entrada_bien_consumo.bien_consumo_uuid ),
                             'cantidadEntrante', entrada_bien_consumo.cant,
+                            'cantidadSaliente', (
+                                select sum(salida_bien_consumo.cant)
+                                from salida_bien_consumo_valor_entrada
+                                left join salida_bien_consumo on salida_bien_consumo.id = salida_bien_consumo_valor_entrada.id
+                                where salida_bien_consumo_valor_entrada.entrada_bien_consumo_id = entrada_bien_consumo.id
+                            ),
                             'salida', json_object( 'id', entrada_bien_consumo_valor_salida.salida_bien_consumo_id )
                         ) as json
                     from entrada_bien_consumo_valor_salida
@@ -1326,6 +1386,12 @@ select json_object(
                             'almacen', json_object( 'uuid', salida_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', salida_bien_consumo.bien_consumo_uuid ),
                             'cantidadSaliente', salida_bien_consumo.cant,
+                            'cantidadEntrante', (
+                                select sum(entrada_bien_consumo.cant)
+                                from entrada_bien_consumo_valor_salida
+                                left join entrada_bien_consumo on entrada_bien_consumo.id = entrada_bien_consumo_valor_salida.id
+                                where entrada_bien_consumo_valor_salida.salida_bien_consumo_id = salida_bien_consumo.id
+                            ),
                             'importePrecioUnitario', salida_bien_consumo.precio_uni
                         ) as json
                     from salida_bien_consumo_valor_nuevo
@@ -1342,6 +1408,12 @@ select json_object(
                             'almacen', json_object( 'uuid', salida_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', salida_bien_consumo.bien_consumo_uuid ),
                             'cantidadSaliente', salida_bien_consumo.cant,
+                            'cantidadEntrante', (
+                                select sum(entrada_bien_consumo.cant)
+                                from entrada_bien_consumo_valor_salida
+                                left join entrada_bien_consumo on entrada_bien_consumo.id = entrada_bien_consumo_valor_salida.id
+                                where entrada_bien_consumo_valor_salida.salida_bien_consumo_id = salida_bien_consumo.id
+                            ),
                             'importePrecioUnitario', salida_bien_consumo.precio_uni,
                             'entrada', json_object( 'id', salida_bien_consumo_valor_entrada.entrada_bien_consumo_id )
                         ) as json
@@ -1611,6 +1683,12 @@ select json_object(
                             'almacen', json_object( 'uuid', entrada_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', entrada_bien_consumo.bien_consumo_uuid ),
                             'cantidadEntrante', entrada_bien_consumo.cant,
+                            'cantidadSaliente', (
+                                select sum(salida_bien_consumo.cant)
+                                from salida_bien_consumo_valor_entrada
+                                left join salida_bien_consumo on salida_bien_consumo.id = salida_bien_consumo_valor_entrada.id
+                                where salida_bien_consumo_valor_entrada.entrada_bien_consumo_id = entrada_bien_consumo.id
+                            ),
                             'importeValorUnitario', entrada_bien_consumo_valor_nuevo.valor_uni
                         ) as json
                     from entrada_bien_consumo_valor_nuevo
@@ -1627,6 +1705,12 @@ select json_object(
                             'almacen', json_object( 'uuid', entrada_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', entrada_bien_consumo.bien_consumo_uuid ),
                             'cantidadEntrante', entrada_bien_consumo.cant,
+                            'cantidadSaliente', (
+                                select sum(salida_bien_consumo.cant)
+                                from salida_bien_consumo_valor_entrada
+                                left join salida_bien_consumo on salida_bien_consumo.id = salida_bien_consumo_valor_entrada.id
+                                where salida_bien_consumo_valor_entrada.entrada_bien_consumo_id = entrada_bien_consumo.id
+                            ),
                             'salida', json_object( 'id', entrada_bien_consumo_valor_salida.salida_bien_consumo_id )
                         ) as json
                     from entrada_bien_consumo_valor_salida
@@ -1812,6 +1896,12 @@ select json_object(
                             'almacen', json_object( 'uuid', salida_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', salida_bien_consumo.bien_consumo_uuid ),
                             'cantidadSaliente', salida_bien_consumo.cant,
+                            'cantidadEntrante', (
+                                select sum(entrada_bien_consumo.cant)
+                                from entrada_bien_consumo_valor_salida
+                                left join entrada_bien_consumo on entrada_bien_consumo.id = entrada_bien_consumo_valor_salida.id
+                                where entrada_bien_consumo_valor_salida.salida_bien_consumo_id = salida_bien_consumo.id
+                            ),
                             'importePrecioUnitario', salida_bien_consumo.precio_uni
                         ) as json
                     from salida_bien_consumo_valor_nuevo
@@ -1828,6 +1918,12 @@ select json_object(
                             'almacen', json_object( 'uuid', salida_bien_consumo.almacen_uuid ),
                             'bienConsumo', json_object( 'uuid', salida_bien_consumo.bien_consumo_uuid ),
                             'cantidadSaliente', salida_bien_consumo.cant,
+                            'cantidadEntrante', (
+                                select sum(entrada_bien_consumo.cant)
+                                from entrada_bien_consumo_valor_salida
+                                left join entrada_bien_consumo on entrada_bien_consumo.id = entrada_bien_consumo_valor_salida.id
+                                where entrada_bien_consumo_valor_salida.salida_bien_consumo_id = salida_bien_consumo.id
+                            ),
                             'importePrecioUnitario', salida_bien_consumo.precio_uni,
                             'entrada', json_object( 'id', salida_bien_consumo_valor_entrada.entrada_bien_consumo_id )
                         ) as json
@@ -1875,6 +1971,12 @@ select json_object(
             'almacen', json_object( 'uuid', salida_bien_consumo.almacen_uuid ),
             'bienConsumo', json_object( 'uuid', salida_bien_consumo.bien_consumo_uuid ),
             'cantidadSaliente', salida_bien_consumo.cant,
+            'cantidadEntrante', (
+                select sum(entrada_bien_consumo.cant)
+                from entrada_bien_consumo_valor_salida
+                left join entrada_bien_consumo on entrada_bien_consumo.id = entrada_bien_consumo_valor_salida.id
+                where entrada_bien_consumo_valor_salida.salida_bien_consumo_id = salida_bien_consumo.id
+            ),
             'importePrecioUnitario', salida_bien_consumo.precio_uni,
             'importeDescuento', nv_salida_bien_consumo.descuento
         )) as json

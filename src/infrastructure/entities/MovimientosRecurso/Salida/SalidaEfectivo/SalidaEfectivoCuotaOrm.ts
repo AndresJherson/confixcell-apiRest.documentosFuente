@@ -9,6 +9,9 @@ export class SalidaEfectivoCuotaOrm extends Model<SalidaEfectivoCuotaOrm, Partia
         allowNull: false
     })
     declare id: number;
+
+    @Column({ type: DataType.STRING(50), allowNull: false, unique: true })
+    declare uuid: string;
     
     @ForeignKey(() => SalidaEfectivoCreditoOrm)
     @Column({

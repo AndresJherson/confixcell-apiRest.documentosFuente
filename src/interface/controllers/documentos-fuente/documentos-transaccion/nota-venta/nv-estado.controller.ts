@@ -1,8 +1,8 @@
 import { NotaVentaEstado } from '@confixcell/modelos';
 import { Controller, Delete, Get, Post, Put } from '@nestjs/common';
 import { ApiBody } from '@nestjs/swagger';
-import { SessionDecorator } from 'src/decorators/session.decorator';
-import { NvEstadoService } from 'src/repositories/documentos-fuente/documentos-transaccion/nota-venta/nv-estado.service';
+import { NvEstadoService } from 'src/domain/application/documentos-fuente/documentos-transaccion/nota-venta/nv-estado.service';
+import { SessionDecorator } from 'src/interface/decorators/session.decorator';
 import { SessionData } from 'src/utils/interfaces';
 
 @Controller('nvEstado')
@@ -24,12 +24,12 @@ export class NvEstadoController {
 
 
     @ApiBody({})
-    @Post('getObjectById')
-    async getObjectById(
+    @Post('getObjectByUuid')
+    async getObjectByUuid(
         @SessionDecorator() sessionData: SessionData
     )
     {
-        return await this.nvEstadoService.getObjectById( sessionData, new NotaVentaEstado({ ...sessionData.json }) );
+        return await this.nvEstadoService.getObjectByUuid( sessionData, new NotaVentaEstado({ ...sessionData.json }) );
     }
 
 

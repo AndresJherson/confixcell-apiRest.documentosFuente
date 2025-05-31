@@ -1,8 +1,8 @@
 import { NotaVentaPrioridad } from '@confixcell/modelos';
 import { Controller, Delete, Get, Post, Put } from '@nestjs/common';
 import { ApiBody } from '@nestjs/swagger';
-import { SessionDecorator } from 'src/decorators/session.decorator';
-import { NvPrioridadService } from 'src/repositories/documentos-fuente/documentos-transaccion/nota-venta/nv-prioridad.service';
+import { NvPrioridadService } from 'src/domain/application/documentos-fuente/documentos-transaccion/nota-venta/nv-prioridad.service';
+import { SessionDecorator } from 'src/interface/decorators/session.decorator';
 import { SessionData } from 'src/utils/interfaces';
 
 @Controller('nvPrioridad')
@@ -24,12 +24,12 @@ export class NvPrioridadController {
 
 
     @ApiBody({})
-    @Post('getObjectById')
-    async getObjectById(
+    @Post('getObjectByUuid')
+    async getObjectByUuid(
         @SessionDecorator() sessionData: SessionData
     )
     {
-        return await this.nvPrioridadService.getObjectById( sessionData, new NotaVentaPrioridad({ ...sessionData.json }) );
+        return await this.nvPrioridadService.getObjectByUuid( sessionData, new NotaVentaPrioridad({ ...sessionData.json }) );
     }
 
 

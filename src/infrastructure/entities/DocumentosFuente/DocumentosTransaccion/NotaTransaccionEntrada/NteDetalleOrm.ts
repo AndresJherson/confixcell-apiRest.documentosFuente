@@ -7,6 +7,9 @@ export class NteDetalleOrm extends Model<NteDetalleOrm, Partial<NteDetalleOrm>>
     @Column({ type: DataType.INTEGER, primaryKey: true })
     declare id: number;
 
+    @Column({ type: DataType.STRING(50), allowNull: false, unique: true })
+    declare uuid: string;
+
     @ForeignKey(() => NotaTransaccionEntradaOrm)
     @Column({ type: DataType.INTEGER, allowNull: false, field: 'nota_transaccion_entrada_id' })
     declare notaTransaccionEntradaId: number;

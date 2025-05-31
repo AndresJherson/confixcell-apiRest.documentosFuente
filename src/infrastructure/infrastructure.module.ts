@@ -45,30 +45,6 @@ import { DbPresetOrm } from './entities/Preset/DbPresetOrm';
 import { HttpModule } from '@nestjs/axios';
 import { ConectorService } from './services/conector.service';
 import { IntegridadService } from './services/integridad.service';
-import { DocumentoFuenteRepository } from './repositories/documentos-fuente/documento-fuente.service';
-import { DocumentoMovimientoRepository } from './repositories/documentos-fuente/documentos-movimiento/documento-movimiento.service';
-import { DocumentoEntradaBienConsumoRepository } from './repositories/documentos-fuente/documentos-movimiento/entrada/documento-entrada-bien-consumo.service';
-import { DocumentoEntradaEfectivoRepository } from './repositories/documentos-fuente/documentos-movimiento/entrada/documento-entrada-efectivo.service';
-import { DocumentoSalidaBienConsumoRepository } from './repositories/documentos-fuente/documentos-movimiento/salida/documento-salida-bien-consumo.service';
-import { DocumentoSalidaEfectivoRepository } from './repositories/documentos-fuente/documentos-movimiento/salida/documento-salida-efectivo.service';
-import { DocumentoTransaccionRepository } from './repositories/documentos-fuente/documentos-transaccion/documento-transaccion.service';
-import { NotaTransaccionEntradaRepository } from './repositories/documentos-fuente/documentos-transaccion/nota-transaccion-entrada/nota-transaccion-entrada.service';
-import { ComprobanteTipoRepository } from './repositories/documentos-fuente/documentos-transaccion/nota-transaccion-entrada/comprobante-tipo.service';
-import { NotaTransaccionSalidaRepository } from './repositories/documentos-fuente/documentos-transaccion/nota-transaccion-salida/nota-transaccion-salida.service';
-import { NotaVentaRepository } from './repositories/documentos-fuente/documentos-transaccion/nota-venta/nota-venta.service';
-import { NvCategoriaReparacionRepository } from './repositories/documentos-fuente/documentos-transaccion/nota-venta/nv-categoria-reparacion.service';
-import { NvEstadoRepository } from './repositories/documentos-fuente/documentos-transaccion/nota-venta/nv-estado.service';
-import { NvPrioridadRepository } from './repositories/documentos-fuente/documentos-transaccion/nota-venta/nv-prioridad.service';
-import { NotaRepository } from './repositories/documentos-fuente/nota/nota.service';
-import { LiquidacionTipoRepository } from './repositories/documentos-fuente/liquidacion-tipo.service';
-import { MedioTransferenciaRepository } from './repositories/documentos-fuente/medio-transferencia.service';
-import { MovimientoRecursoRepository } from './repositories/movimientos-recurso/movimiento-recurso.service';
-import { EntradaEfectivoRepository } from './repositories/movimientos-recurso/entrada/entrada-efectivo.service';
-import { EntradaBienConsumoRepository } from './repositories/movimientos-recurso/entrada/entrada-bien-consumo.service';
-import { SalidaEfectivoRepository } from './repositories/movimientos-recurso/salida/salida-efectivo.service';
-import { SalidaBienConsumoRepository } from './repositories/movimientos-recurso/salida/salida-bien-consumo.service';
-import { SalidaProduccionRepository } from './repositories/movimientos-recurso/salida/salida-produccion.service';
-import { DbPresetRepository } from './repositories/preset/db-preset.service';
 
 @Module({
     imports: [
@@ -154,68 +130,11 @@ import { DbPresetRepository } from './repositories/preset/db-preset.service';
     providers: [
         ConectorService,
         IntegridadService,
-
-        DocumentoFuenteRepository,
-        NotaRepository,
-        LiquidacionTipoRepository,
-        MedioTransferenciaRepository,
-
-        DocumentoMovimientoRepository,
-        DocumentoEntradaEfectivoRepository,
-        DocumentoEntradaBienConsumoRepository,
-        DocumentoSalidaEfectivoRepository,
-        DocumentoSalidaBienConsumoRepository,
-
-        DocumentoTransaccionRepository,
-        NotaTransaccionEntradaRepository,
-        ComprobanteTipoRepository,
-        NotaTransaccionSalidaRepository,
-        NotaVentaRepository,
-        NvCategoriaReparacionRepository,
-        NvEstadoRepository,
-        NvPrioridadRepository,
-
-        MovimientoRecursoRepository,
-        EntradaEfectivoRepository,
-        EntradaBienConsumoRepository,
-        SalidaEfectivoRepository,
-        SalidaBienConsumoRepository,
-        SalidaProduccionRepository,
-
-        DbPresetRepository
     ],
     exports: [
         ConectorService,
         IntegridadService,
-        
-        DocumentoFuenteRepository,
-        NotaRepository,
-        LiquidacionTipoRepository,
-        MedioTransferenciaRepository,
-
-        DocumentoMovimientoRepository,
-        DocumentoEntradaEfectivoRepository,
-        DocumentoEntradaBienConsumoRepository,
-        DocumentoSalidaEfectivoRepository,
-        DocumentoSalidaBienConsumoRepository,
-
-        DocumentoTransaccionRepository,
-        NotaTransaccionEntradaRepository,
-        ComprobanteTipoRepository,
-        NotaTransaccionSalidaRepository,
-        NotaVentaRepository,
-        NvCategoriaReparacionRepository,
-        NvEstadoRepository,
-        NvPrioridadRepository,
-
-        MovimientoRecursoRepository,
-        EntradaEfectivoRepository,
-        EntradaBienConsumoRepository,
-        SalidaEfectivoRepository,
-        SalidaBienConsumoRepository,
-        SalidaProduccionRepository,
-
-        DbPresetRepository
+        SequelizeModule
     ]
 })
 export class InfrastructureModule {}
