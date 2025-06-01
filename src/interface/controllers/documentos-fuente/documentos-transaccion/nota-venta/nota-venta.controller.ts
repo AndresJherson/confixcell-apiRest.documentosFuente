@@ -64,32 +64,12 @@ export class NotaVentaController {
 
 
     @ApiBody({})
-    @Post('createAndIssue')
-    async createAndIssue(
-        @SessionDecorator() sessionData: SessionData
-    )
-    {
-        return await this.notaVentaService.createAndIssue( sessionData, new NotaVenta( sessionData.json ) );
-    }
-
-
-    @ApiBody({})
     @Put('update')
     async update(
         @SessionDecorator() sessionData: SessionData
     )
     {
         return await this.notaVentaService.update( sessionData, new NotaVenta( sessionData.json ) );
-    }
-
-
-    @ApiBody({})
-    @Put('updateAndIssue')
-    async updateAndIssue(
-        @SessionDecorator() sessionData: SessionData
-    )
-    {
-        return await this.notaVentaService.updateAndIssue( sessionData, new NotaVenta( sessionData.json ) );
     }
 
 

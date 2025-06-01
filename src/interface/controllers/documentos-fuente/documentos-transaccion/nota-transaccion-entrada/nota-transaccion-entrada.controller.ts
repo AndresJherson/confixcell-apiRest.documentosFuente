@@ -64,32 +64,12 @@ export class NotaTransaccionEntradaController {
 
 
     @ApiBody({})
-    @Post('createAndIssue')
-    async createAndIssue(
-        @SessionDecorator() sessionData: SessionData
-    )
-    {
-        return await this.notaTransaccionEntradaService.createAndIssue( sessionData, new NotaTransaccionEntrada( sessionData.json ) );
-    }
-
-
-    @ApiBody({})
     @Put('update')
     async update(
         @SessionDecorator() sessionData: SessionData
     )
     {
         return await this.notaTransaccionEntradaService.update( sessionData, new NotaTransaccionEntrada( sessionData.json ) );
-    }
-
-
-    @ApiBody({})
-    @Put('updateAndIssue')
-    async updateAndIssue(
-        @SessionDecorator() sessionData: SessionData
-    )
-    {
-        return await this.notaTransaccionEntradaService.updateAndIssue( sessionData, new NotaTransaccionEntrada( sessionData.json ) );
     }
 
 

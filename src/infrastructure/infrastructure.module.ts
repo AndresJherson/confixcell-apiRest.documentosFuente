@@ -45,6 +45,7 @@ import { DbPresetOrm } from './entities/Preset/DbPresetOrm';
 import { HttpModule } from '@nestjs/axios';
 import { ConectorService } from './services/conector.service';
 import { IntegridadService } from './services/integridad.service';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
     imports: [
@@ -126,6 +127,15 @@ import { IntegridadService } from './services/integridad.service';
             DbPresetOrm
         ]),
         HttpModule,
+        ClientsModule.register([
+            {
+                name: 'NATS',
+                transport: Transport.NATS,
+                options: {
+                    servers: process.env.NATS_HOST
+                }
+            }
+        ])
     ],
     providers: [
         ConectorService,
@@ -134,7 +144,10 @@ import { IntegridadService } from './services/integridad.service';
     exports: [
         ConectorService,
         IntegridadService,
-        SequelizeModule
+        ConfigModule,
+        SequelizeModule,
+        HttpModule,
+        ClientsModule
     ]
 })
 export class InfrastructureModule {}

@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { DocumentoMovimientoService } from '../documento-movimiento.service';
 import { ModuleRef } from '@nestjs/core';
 import { ERROR, ERROR_DOCUMENT } from 'src/utils/constants';
@@ -10,6 +10,8 @@ import { SalidaBienConsumoService } from 'src/domain/application/movimientos-rec
 import { DocumentoFuenteOrm } from 'src/infrastructure/entities/DocumentosFuente/DocumentoFuenteOrm';
 import { DocumentoFuenteService } from '../../documento-fuente.service';
 import { MovimientoRecursoService } from 'src/domain/application/movimientos-recurso/movimiento-recurso.service';
+import { ClientNats } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class DocumentoSalidaBienConsumoService {
@@ -22,6 +24,7 @@ export class DocumentoSalidaBienConsumoService {
 
     constructor(
         private conectorService: ConectorService,
+        @Inject('NATS') private clientNats: ClientNats,
         private moduleRef: ModuleRef,
     )
     {}
@@ -61,7 +64,7 @@ export class DocumentoSalidaBienConsumoService {
                     where salida_bien_consumo.documento_fuente_id = documento_movimiento.id
                 )
             `
-        }).then( data => data.map( item => item.procesarInformacion() ) );
+        }).then( data => data.map( item => item.setRelation().procesarInformacion() ) );
     }
 
 
@@ -81,7 +84,8 @@ export class DocumentoSalidaBienConsumoService {
 
         if ( !data.length ) throw new InternalServerErrorException( ERROR.UUID_INVALIDATE );
 
-        return data[0].procesarInformacion();
+        return data[0].setRelation()
+            .procesarInformacion();
     }
 
 
@@ -111,7 +115,9 @@ export class DocumentoSalidaBienConsumoService {
 
 
         await this.executeCreateCollection( s, [ item ] );
-        return await this.getObjectByUuid( s, item );
+        const item2send = await this.getObjectByUuid( s, item );
+        s.postCommitEvents.push( () => firstValueFrom(this.clientNats.emit('kardexBienConsumo.crearMovimiento', item2send.toRecordKardexBienConsumo())) );
+        return item2send;
     }
 
 
@@ -135,6 +141,8 @@ export class DocumentoSalidaBienConsumoService {
         })
 
         if ( af1 === 0 ) throw new InternalServerErrorException(ERROR.NON_UPDATE);
+
+        s.postCommitEvents.push( () => firstValueFrom(this.clientNats.emit('kardexBienConsumo.eliminarMovimiento', item2validate.toRecordKardexBienConsumo())) )
         return await this.getObjectByUuid( s, item2validate );
     }
 

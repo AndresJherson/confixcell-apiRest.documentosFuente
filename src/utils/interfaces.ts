@@ -8,5 +8,6 @@ export interface SessionData
     res: Response,
     transaction: Transaction,
     json: Record<string,any>,
-    usuarioSession: Usuario
+    usuarioSession: Usuario,
+    postCommitEvents: (() => Promise<void>)[]
 }

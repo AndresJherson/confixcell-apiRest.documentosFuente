@@ -1,9 +1,9 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { DocumentoTransaccionService } from '../documento-transaccion.service';
 import { ModuleRef } from '@nestjs/core';
 import { ERROR, ERROR_DOCUMENT } from 'src/utils/constants';
 import { SessionData } from 'src/utils/interfaces';
-import { Almacen, Cliente, DbPreset, NotaVenta, Prop, Usuario } from '@confixcell/modelos';
+import { Almacen, Cliente, DbPreset, NotaVenta, Usuario } from '@confixcell/modelos';
 import { v4 } from 'uuid';
 import { DocumentoMovimientoService } from '../../documentos-movimiento/documento-movimiento.service';
 import { ConectorService } from 'src/infrastructure/services/conector.service';
@@ -16,6 +16,8 @@ import { DbPresetService } from 'src/domain/application/preset/db-preset.service
 import { DocumentoFuenteOrm } from 'src/infrastructure/entities/DocumentosFuente/DocumentoFuenteOrm';
 import { MovimientoRecursoService } from 'src/domain/application/movimientos-recurso/movimiento-recurso.service';
 import { DocumentoTransaccionOrm } from 'src/infrastructure/entities/DocumentosFuente/DocumentosTransaccion/DocumentoTransaccionOrm';
+import { ClientNats } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class NotaVentaService {
@@ -33,6 +35,7 @@ export class NotaVentaService {
 
     constructor(
         private conectorService: ConectorService,
+        @Inject('NATS') private clientNats: ClientNats,
         private moduleRef: ModuleRef,
     )
     {}
@@ -90,7 +93,7 @@ export class NotaVentaService {
             target: NotaVenta,
             transaction: s.transaction,
             query: this.query
-        }).then( data => data.map( item => item.procesarInformacion() ) );
+        }).then( data => data.map( item => item.setRelation().procesarInformacion() ) );
     }
 
 
@@ -106,7 +109,7 @@ export class NotaVentaService {
             parameters: {
                 usuarioUuid: usuario?.uuid ?? null
             }
-        }).then( data => data.map( item => item.procesarInformacion() ) );
+        }).then( data => data.map( item => item.setRelation().procesarInformacion() ) );
     }
 
 
@@ -122,7 +125,7 @@ export class NotaVentaService {
             parameters: {
                 clienteUuid: cliente?.uuid ?? null
             }
-        }).then( data => data.map( item => item.procesarInformacion() ) );
+        }).then( data => data.map( item => item.setRelation().procesarInformacion() ) );
     }
 
 
@@ -142,7 +145,8 @@ export class NotaVentaService {
 
         if ( !data.length ) throw new InternalServerErrorException( ERROR.UUID_INVALIDATE );
 
-        return data[0].procesarInformacion();
+        return data[0].setRelation()
+            .procesarInformacion();
     }
 
 
@@ -155,171 +159,171 @@ export class NotaVentaService {
         if ( almacenProductosServicioReparacion.valor === undefined ) throw new InternalServerErrorException( `${almacenProductosServicioReparacion.titulo} NO ESTABLECIDO` );
 
         item.set({
-            uuid: v4(),
-            codigoSerie: undefined,
-            codigoNumero: undefined,
-            fechaEmision: undefined,
-            fechaAnulacion: undefined,
-            usuario: s.usuarioSession,
-            docsEntradaEfectivo: [],
-            docsEntradaBienConsumo: [],
-            docsSalidaEfectivo: [],
-            docsSalidaBienConsumo: [],
             salidasBienConsumo: item.salidasBienConsumo.map( sal => sal.set({
-                uuid: v4(),
                 almacen: new Almacen({
                     uuid: almacenProductos.valor
                 })
             }) ),
             salidasProduccionServicioReparacion: item.salidasProduccionServicioReparacion.map( sal => sal.set({
-                uuid: v4(),
                 recursosBienConsumo: sal.recursosBienConsumo.map( recurso => recurso.set({
-                    uuid: v4(),
                     almacen: new Almacen({
                         uuid: almacenProductosServicioReparacion.valor
                     })
-                }) ),
-                recursosServicio: sal.recursosServicio.map( recurso => recurso.set({
-                    uuid: v4()
-                }) )
-            }) ),
-            entradasEfectivo: item.entradasEfectivo.map( ent => ent.set({
-                uuid: v4()
-            }) )
-        })
-        .setRelation()
-        .procesarInformacion();
-
-
-        await this.executeCreateCollection( s, [ item ] );
-        return await this.getObjectByUuid( s, item );
-    }
-
-
-    async createAndIssue( s: SessionData, item: NotaVenta )
-    {
-        const dateTimeEmision = Prop.toDateTime( item.fechaEmision );
-        if ( !dateTimeEmision.isValid ) throw new InternalServerErrorException( ERROR_DOCUMENT.DATETIME_ISSUE_INVALIDATE );
-
-        const almacenProductos = await this.dbPresetService.getObjectByTarget( s, new DbPreset({ target: 'nv_salida_bien_consumo.almacen_uuid' }) );
-        if ( almacenProductos.valor === undefined ) throw new InternalServerErrorException( `${almacenProductos.titulo} NO ESTABLECIDO` );
-
-        const almacenProductosServicioReparacion = await this.dbPresetService.getObjectByTarget( s, new DbPreset({ target: 'nv_servicio_reparacion_recurso_bien_consumo.almacen_uuid' }) );
-        if ( almacenProductosServicioReparacion.valor === undefined ) throw new InternalServerErrorException( `${almacenProductosServicioReparacion.titulo} NO ESTABLECIDO` );
-
-        item.set({
-            uuid: v4(),
-            fechaAnulacion: undefined,
-            codigoSerie: `NV${dateTimeEmision.toFormat( 'yyyy' )}`,
-            usuario: s.usuarioSession,
-            salidasBienConsumo: item.salidasBienConsumo.map( sal => sal.set({
-                uuid: v4(),
-                almacen: new Almacen({
-                    uuid: almacenProductos.valor
-                })
-            }) ),
-            salidasProduccionServicioReparacion: item.salidasProduccionServicioReparacion.map( sal => sal.set({
-                uuid: v4(),
-                recursosBienConsumo: sal.recursosBienConsumo.map( recurso => recurso.set({
-                    uuid: v4(),
-                    almacen: new Almacen({
-                        uuid: almacenProductosServicioReparacion.valor
-                    }),
-                }) ),
-                recursosServicio: sal.recursosServicio.map( recurso => recurso.set({
-                    uuid: v4()
-                }) )
-            }) ),
-            entradasEfectivo: item.entradasEfectivo.map( ent => ent.set({
-                uuid: v4()
-            }) ),
-            docsEntradaEfectivo: item.docsEntradaEfectivo.map( doc => doc.set({
-                uuid: v4(),
-                usuario: s.usuarioSession,
-                entradas: doc.entradas.map( ent => ent.set({
-                    uuid: v4()
-                }) )
-            }) ),
-            docsEntradaBienConsumo: item.docsEntradaBienConsumo.map( doc => doc.set({
-                uuid: v4(),
-                usuario: s.usuarioSession,
-                entradas: doc.entradas.map( ent => ent.set({
-                    uuid: v4()
-                }) )
-            }) ),
-            docsSalidaEfectivo: item.docsSalidaEfectivo.map( doc => doc.set({
-                uuid: v4(),
-                usuario: s.usuarioSession,
-                salidas: doc.salidas.map( sal => sal.set({
-                    uuid: v4()
-                }) )
-            }) ),
-            docsSalidaBienConsumo: item.docsSalidaBienConsumo.map( doc => doc.set({
-                uuid: v4(),
-                usuario: s.usuarioSession,
-                salidas: doc.salidas.map( sal => sal.set({
-                    uuid: v4()
                 }) )
             }) )
-        })
-    
-        item.documentosMovimiento.forEach( doc => {
-            if ( !doc.dateTimeEmision.isValid ) throw new InternalServerErrorException( ERROR_DOCUMENT.DATETIME_ISSUE_INVALIDATE );
-            doc.set({
-                codigoSerie: `MOV${doc.dateTimeEmision.toFormat( 'yyyy' )}`
-            })
-        } );
-
-
-        const codigos = await this.documentoFuenteService.getRecordCodigos({
-            transaction: s.transaction,
-            series: [ item.codigoSerie!, ...item.documentosMovimiento.map( doc => doc.codigoSerie! ) ]
         });
 
-        item.set({
-            codigoNumero: codigos[item.codigoSerie!],
-            docsEntradaEfectivo: item.docsEntradaEfectivo.map( doc => {
+
+        if ( !item.dateTimeEmision.isValid ) {
+
+            item.set({
+                uuid: v4(),
+                codigoSerie: undefined,
+                codigoNumero: undefined,
+                fechaEmision: undefined,
+                fechaAnulacion: undefined,
+                usuario: s.usuarioSession,
+                docsEntradaEfectivo: [],
+                docsEntradaBienConsumo: [],
+                docsSalidaEfectivo: [],
+                docsSalidaBienConsumo: [],
+                salidasBienConsumo: item.salidasBienConsumo.map( sal => sal.set({
+                    uuid: v4(),
+                }) ),
+                salidasProduccionServicioReparacion: item.salidasProduccionServicioReparacion.map( sal => sal.set({
+                    uuid: v4(),
+                    recursosBienConsumo: sal.recursosBienConsumo.map( recurso => recurso.set({
+                        uuid: v4(),
+                    }) ),
+                    recursosServicio: sal.recursosServicio.map( recurso => recurso.set({
+                        uuid: v4()
+                    }) )
+                }) ),
+                entradasEfectivo: item.entradasEfectivo.map( ent => ent.set({
+                    uuid: v4()
+                }) )
+            })
+            .setRelation()
+            .procesarInformacion();
+    
+    
+            await this.executeCreateCollection( s, [ item ] );
+            return await this.getObjectByUuid( s, item );
+
+        }
+        else {
+
+            item.set({
+                uuid: v4(),
+                fechaAnulacion: undefined,
+                codigoSerie: `NV${item.dateTimeEmision.toFormat( 'yyyy' )}`,
+                usuario: s.usuarioSession,
+                salidasBienConsumo: item.salidasBienConsumo.map( sal => sal.set({
+                    uuid: v4()
+                }) ),
+                salidasProduccionServicioReparacion: item.salidasProduccionServicioReparacion.map( sal => sal.set({
+                    uuid: v4(),
+                    recursosBienConsumo: sal.recursosBienConsumo.map( recurso => recurso.set({
+                        uuid: v4()
+                    }) ),
+                    recursosServicio: sal.recursosServicio.map( recurso => recurso.set({
+                        uuid: v4()
+                    }) )
+                }) ),
+                entradasEfectivo: item.entradasEfectivo.map( ent => ent.set({
+                    uuid: v4()
+                }) ),
+                docsEntradaEfectivo: item.docsEntradaEfectivo.map( doc => doc.set({
+                    uuid: v4(),
+                    usuario: s.usuarioSession,
+                    entradas: doc.entradas.map( ent => ent.set({
+                        uuid: v4()
+                    }) )
+                }) ),
+                docsEntradaBienConsumo: item.docsEntradaBienConsumo.map( doc => doc.set({
+                    uuid: v4(),
+                    usuario: s.usuarioSession,
+                    entradas: doc.entradas.map( ent => ent.set({
+                        uuid: v4()
+                    }) )
+                }) ),
+                docsSalidaEfectivo: item.docsSalidaEfectivo.map( doc => doc.set({
+                    uuid: v4(),
+                    usuario: s.usuarioSession,
+                    salidas: doc.salidas.map( sal => sal.set({
+                        uuid: v4()
+                    }) )
+                }) ),
+                docsSalidaBienConsumo: item.docsSalidaBienConsumo.map( doc => doc.set({
+                    uuid: v4(),
+                    usuario: s.usuarioSession,
+                    salidas: doc.salidas.map( sal => sal.set({
+                        uuid: v4()
+                    }) )
+                }) )
+            })
+        
+            item.documentosMovimiento.forEach( doc => {
+                if ( !doc.dateTimeEmision.isValid ) throw new InternalServerErrorException( ERROR_DOCUMENT.DATETIME_ISSUE_INVALIDATE );
                 doc.set({
-                    codigoNumero: codigos[doc.codigoSerie!]
+                    codigoSerie: `MOV${doc.dateTimeEmision.toFormat( 'yyyy' )}`
                 })
-                codigos[doc.codigoSerie!]++;
+            } );
+        
+        
+            const codigos = await this.documentoFuenteService.getRecordCodigos({
+                transaction: s.transaction,
+                series: [ item.codigoSerie!, ...item.documentosMovimiento.map( doc => doc.codigoSerie! ) ]
+            });
+        
+            item.set({
+                codigoNumero: codigos[item.codigoSerie!],
+                docsEntradaEfectivo: item.docsEntradaEfectivo.map( doc => {
+                    doc.set({
+                        codigoNumero: codigos[doc.codigoSerie!]
+                    })
+                    codigos[doc.codigoSerie!]++;
+        
+                    return doc;
+                } ),
+                docsEntradaBienConsumo: item.docsEntradaBienConsumo.map( doc => {
+                    doc.set({
+                        codigoNumero: codigos[doc.codigoSerie!]
+                    })
+                    codigos[doc.codigoSerie!]++;
+        
+                    return doc;
+                } ),
+                docsSalidaEfectivo: item.docsSalidaEfectivo.map( doc => {
+                    doc.set({
+                        codigoNumero: codigos[doc.codigoSerie!]
+                    })
+                    codigos[doc.codigoSerie!]++;
+        
+                    return doc;
+                } ),
+                docsSalidaBienConsumo: item.docsSalidaBienConsumo.map( doc => {
+                    doc.set({
+                        codigoNumero: codigos[doc.codigoSerie!]
+                    })
+                    codigos[doc.codigoSerie!]++;
+        
+                    return doc;
+                } )
+            })
+            codigos[item.codigoSerie!]++;
+        
+        
+            item.setRelation()
+            .procesarInformacion();
+        
+        
+            await this.executeCreateCollection( s, [ item ] );
+            const item2send = await this.getObjectByUuid( s, item );
+            s.postCommitEvents.push( () => firstValueFrom(this.clientNats.emit('kardexBienConsumo.crearMovimiento', item2send.toRecordKardexBienConsumo())) );
+            return item2send;
 
-                return doc;
-            } ),
-            docsEntradaBienConsumo: item.docsEntradaBienConsumo.map( doc => {
-                doc.set({
-                    codigoNumero: codigos[doc.codigoSerie!]
-                })
-                codigos[doc.codigoSerie!]++;
-
-                return doc;
-            } ),
-            docsSalidaEfectivo: item.docsSalidaEfectivo.map( doc => {
-                doc.set({
-                    codigoNumero: codigos[doc.codigoSerie!]
-                })
-                codigos[doc.codigoSerie!]++;
-
-                return doc;
-            } ),
-            docsSalidaBienConsumo: item.docsSalidaBienConsumo.map( doc => {
-                doc.set({
-                    codigoNumero: codigos[doc.codigoSerie!]
-                })
-                codigos[doc.codigoSerie!]++;
-
-                return doc;
-            } )
-        })
-        codigos[item.codigoSerie!]++;
-
-
-        item.setRelation()
-        .procesarInformacion();
-
-
-        await this.executeCreateCollection( s, [ item ] );
-        return await this.getObjectByUuid( s, item );
+        }
     }
 
 
@@ -407,6 +411,7 @@ export class NotaVentaService {
 
             await this.documentoTransaccionService.executeCreateCollection( s, [ item ], false );
             await this.executeCreateCollection( s, [ item ], false );
+            return await this.getObjectByUuid( s, item );
         }
         else {
             item.set({
@@ -534,9 +539,10 @@ export class NotaVentaService {
 
             await this.documentoTransaccionService.executeCreateCollection( s, [ item ], false );
             await this.executeCreateCollection( s, [ item ], false );
+            const item2send = await this.getObjectByUuid( s, item );
+            s.postCommitEvents.push( () => firstValueFrom(this.clientNats.emit('kardexBienConsumo.crearMovimiento', item2send.toRecordKardexBienConsumo())) );
+            return item2send;
         }
-
-        return await this.getObjectByUuid( s, item );
     }
 
 
@@ -559,6 +565,8 @@ export class NotaVentaService {
         });
 
         if ( af1 === 0 ) throw new InternalServerErrorException(ERROR.NON_UPDATE);
+
+        s.postCommitEvents.push( () => firstValueFrom(this.clientNats.emit('kardexBienConsumo.eliminarMovimiento', item2validate.toRecordKardexBienConsumo())) )
         return await this.getObjectByUuid( s, item2validate );
     }
 

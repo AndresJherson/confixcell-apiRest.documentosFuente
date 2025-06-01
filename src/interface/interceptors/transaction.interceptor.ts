@@ -1,5 +1,6 @@
 import { Prop, Usuario } from '@confixcell/modelos';
-import { CallHandler, ExecutionContext, Injectable, InternalServerErrorException, NestInterceptor } from '@nestjs/common';
+import { CallHandler, ExecutionContext, Inject, Injectable, InternalServerErrorException, NestInterceptor } from '@nestjs/common';
+import { ClientNats } from '@nestjs/microservices';
 import { Request, Response } from 'express';
 import { catchError, from, map, Observable, switchMap, throwError } from 'rxjs';
 import { ConectorService } from 'src/infrastructure/services/conector.service';
@@ -9,7 +10,8 @@ import { SessionData } from 'src/utils/interfaces';
 export class TransactionInterceptor implements NestInterceptor {
 
     constructor(
-        private conectorService: ConectorService
+        private conectorService: ConectorService,
+        @Inject('NATS') private clientNats: ClientNats
     )
     {}
 
@@ -28,15 +30,23 @@ export class TransactionInterceptor implements NestInterceptor {
                     res,
                     json: body.json,
                     transaction: t,
-                    usuarioSession: new Usuario( body.usuarioSession )
+                    usuarioSession: new Usuario( body.usuarioSession ),
+                    postCommitEvents: []
                 }
 
                 req['sessionData'] = sessionData;
 
                 return next.handle().pipe(
-                    switchMap( response => from( t.commit() ).pipe(
-                        map( () => response )
-                    ) ),
+                    switchMap( response => 
+                        from( t.commit() ).pipe(
+                            switchMap(() => {
+                                const postCommitEvents = sessionData.postCommitEvents;
+                                return from(Promise.all( postCommitEvents.map(fn => fn()) )).pipe(
+                                    map(() => response)
+                                )
+                            })
+                        )
+                    ),
                     catchError( error => {
                         console.log( `Error capturado en interceptor: ${error}` );
                         return from( t.rollback() ).pipe(
