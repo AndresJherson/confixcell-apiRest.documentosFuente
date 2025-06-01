@@ -13,41 +13,44 @@ import { SessionData } from 'src/utils/interfaces';
 @Injectable()
 export class EntradaEfectivoService {
 
-    async executeCreateCollection( s: SessionData, entradasEfectivo: EntradaEfectivo[] )
+    async executeCreateCollection( s: SessionData, items: EntradaEfectivo[] )
     {
         const transaction = s.transaction;
+        const recordItems: Record<string, EntradaEfectivo> = {};
+        items.forEach( item => {
+            if ( item.uuid ) recordItems[item.uuid] = item;
+        } );
         
-        await EntradaEfectivoOrm.bulkCreate(
-            entradasEfectivo.map(ent => ({
-                id: ent.id,
-                uuid: ent.uuid,
-                documentoFuenteId: ent.documentoFuente?.id,
-                importeValorNeto: ent.importeValorNeto
+        const orms = await EntradaEfectivoOrm.bulkCreate(
+            items.map(item => ({
+                uuid: item.uuid,
+                documentoFuenteId: item.documentoFuente?.id,
+                importeValorNeto: item.importeValorNeto
             })),
             { transaction }
         );
-        
 
-        for (let i = 0; i < entradasEfectivo.length; i++) {
-            const ent = entradasEfectivo[i];
+        orms.forEach( orm => recordItems[orm.uuid].set({...orm.get()}).setRelation() );
+        
+        
+        for (const item of items) {
             
-            if (ent instanceof EntradaEfectivoContado) {
+            if (item instanceof EntradaEfectivoContado) {
                 await EntradaEfectivoContadoOrm.create({
-                    id: ent.id,
-                    medioTransferenciaId: ent.medioTransferencia?.id
+                    id: item.id,
+                    medioTransferenciaId: item.medioTransferencia?.id
                 }, { transaction });
             }
-            else if (ent instanceof EntradaEfectivoCredito) {
+            else if (item instanceof EntradaEfectivoCredito) {
                 await EntradaEfectivoCreditoOrm.create({
-                    id: ent.id,
-                    tasaInteresDiario: ent.tasaInteresDiario
+                    id: item.id,
+                    tasaInteresDiario: item.tasaInteresDiario
                 }, { transaction });
                 
-                if (ent.cuotas.length) {
+                if (item.cuotas.length) {
                     await EntradaEfectivoCuotaOrm.bulkCreate(
-                        ent.cuotas.map(cuota => ({
-                            id: cuota.id,
-                            entradaEfectivoCreditoId: ent.id,
+                        item.cuotas.map(cuota => ({
+                            entradaEfectivoCreditoId: item.id,
                             numero: cuota.numero,
                             fechaInicio: cuota.fechaInicio,
                             fechaVencimiento: cuota.fechaVencimiento,
@@ -60,18 +63,17 @@ export class EntradaEfectivoService {
                     );
                 }
             }
-            else if (ent instanceof NotaTransaccionEntradaCredito) {
+            else if (item instanceof NotaTransaccionEntradaCredito) {
                 await NteCreditoOrm.create({
-                    id: ent.id,
-                    notaTransaccionEntradaId: ent.documentoFuente?.id,
-                    tasaInteresDiario: ent.tasaInteresDiario
+                    id: item.id,
+                    notaTransaccionEntradaId: item.documentoFuente?.id,
+                    tasaInteresDiario: item.tasaInteresDiario
                 }, { transaction });
                 
-                if (ent.cuotas.length) {
+                if (item.cuotas.length) {
                     await NteCuotaOrm.bulkCreate(
-                        ent.cuotas.map(cuota => ({
-                            id: cuota.id,
-                            nteCreditoId: ent.id,
+                        item.cuotas.map(cuota => ({
+                            nteCreditoId: item.id,
                             numero: cuota.numero,
                             fechaInicio: cuota.fechaInicio,
                             fechaVencimiento: cuota.fechaVencimiento,
@@ -84,13 +86,13 @@ export class EntradaEfectivoService {
                     );
                 }
             }
-            else if (ent instanceof NotaVentaEntradaEfectivo) {
+            else if (item instanceof NotaVentaEntradaEfectivo) {
                 await NvEntradaEfectivoOrm.create({
-                    id: ent.id,
-                    notaVentaId: ent.documentoFuente?.id,
-                    numero: ent.numero,
-                    fecha: ent.fecha,
-                    medioTransferenciaId: ent.medioTransferencia?.id
+                    id: item.id,
+                    notaVentaId: item.documentoFuente?.id,
+                    numero: item.numero,
+                    fecha: item.fecha,
+                    medioTransferenciaId: item.medioTransferencia?.id
                 }, { transaction });
             }
             else {

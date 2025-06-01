@@ -15,6 +15,7 @@ import { SalidaProduccionService } from 'src/domain/application/movimientos-recu
 import { DbPresetService } from 'src/domain/application/preset/db-preset.service';
 import { DocumentoFuenteOrm } from 'src/infrastructure/entities/DocumentosFuente/DocumentoFuenteOrm';
 import { MovimientoRecursoService } from 'src/domain/application/movimientos-recurso/movimiento-recurso.service';
+import { DocumentoTransaccionOrm } from 'src/infrastructure/entities/DocumentosFuente/DocumentosTransaccion/DocumentoTransaccionOrm';
 
 @Injectable()
 export class NotaVentaService {
@@ -61,11 +62,12 @@ export class NotaVentaService {
     }
 
 
-    async executeCreateCollection( s: SessionData, notasVenta: NotaVenta[] )
+    async executeCreateCollection( s: SessionData, items: NotaVenta[], withSupertype: boolean = true )
     {
-        await this.documentoTransaccionService.executeCreateCollection( s, notasVenta );
+        if ( withSupertype )
+            await this.documentoTransaccionService.executeCreateCollection( s, items );
 
-        await NotaVentaOrm.bulkCreate( notasVenta.map( item => ({
+        await NotaVentaOrm.bulkCreate( items.map( item => ({
             id: item.id,
             fechaCompromiso: item.fechaCompromiso,
             clienteUuid: item.cliente?.uuid,
@@ -76,9 +78,9 @@ export class NotaVentaService {
             transaction: s.transaction
         } );
 
-        await this.entradaEfectivoService.executeCreateCollection( s, notasVenta.flatMap( item => item.entradasEfectivo ) );
-        await this.salidaBienConsumoService.executeCreateCollection( s, notasVenta.flatMap( item => item.salidasBienConsumo ) );
-        await this.salidaProduccionService.executeCreateCollection( s, notasVenta.flatMap( item => item.salidasProduccionServicioReparacion ) );
+        await this.entradaEfectivoService.executeCreateCollection( s, items.flatMap( item => item.entradasEfectivo ) );
+        await this.salidaBienConsumoService.executeCreateCollection( s, items.flatMap( item => item.salidasBienConsumo ) );
+        await this.salidaProduccionService.executeCreateCollection( s, items.flatMap( item => item.salidasProduccionServicioReparacion ) );
     }
 
 
@@ -131,7 +133,7 @@ export class NotaVentaService {
             transaction: s.transaction,
             query: `
                 ${this.query}
-                and df.uuid ${item.uuid === undefined ? ' is null ': ' = :uuid '}
+                where df.uuid ${item.uuid === undefined ? ' is null ': ' = :uuid '}
             `,
             parameters: {
                 uuid: item.uuid ?? null
@@ -158,6 +160,7 @@ export class NotaVentaService {
             codigoNumero: undefined,
             fechaEmision: undefined,
             fechaAnulacion: undefined,
+            usuario: s.usuarioSession,
             docsEntradaEfectivo: [],
             docsEntradaBienConsumo: [],
             docsSalidaEfectivo: [],
@@ -175,7 +178,13 @@ export class NotaVentaService {
                     almacen: new Almacen({
                         uuid: almacenProductosServicioReparacion.valor
                     })
+                }) ),
+                recursosServicio: sal.recursosServicio.map( recurso => recurso.set({
+                    uuid: v4()
                 }) )
+            }) ),
+            entradasEfectivo: item.entradasEfectivo.map( ent => ent.set({
+                uuid: v4()
             }) )
         })
         .setRelation()
@@ -202,6 +211,7 @@ export class NotaVentaService {
             uuid: v4(),
             fechaAnulacion: undefined,
             codigoSerie: `NV${dateTimeEmision.toFormat( 'yyyy' )}`,
+            usuario: s.usuarioSession,
             salidasBienConsumo: item.salidasBienConsumo.map( sal => sal.set({
                 uuid: v4(),
                 almacen: new Almacen({
@@ -225,42 +235,45 @@ export class NotaVentaService {
             }) ),
             docsEntradaEfectivo: item.docsEntradaEfectivo.map( doc => doc.set({
                 uuid: v4(),
+                usuario: s.usuarioSession,
                 entradas: doc.entradas.map( ent => ent.set({
                     uuid: v4()
                 }) )
             }) ),
             docsEntradaBienConsumo: item.docsEntradaBienConsumo.map( doc => doc.set({
                 uuid: v4(),
+                usuario: s.usuarioSession,
                 entradas: doc.entradas.map( ent => ent.set({
                     uuid: v4()
                 }) )
             }) ),
             docsSalidaEfectivo: item.docsSalidaEfectivo.map( doc => doc.set({
                 uuid: v4(),
+                usuario: s.usuarioSession,
                 salidas: doc.salidas.map( sal => sal.set({
                     uuid: v4()
                 }) )
             }) ),
             docsSalidaBienConsumo: item.docsSalidaBienConsumo.map( doc => doc.set({
                 uuid: v4(),
+                usuario: s.usuarioSession,
                 salidas: doc.salidas.map( sal => sal.set({
                     uuid: v4()
                 }) )
             }) )
         })
     
-        item.documentosMovimientos.forEach( doc => {
-            const dateTimeEmisionMovimiento = Prop.toDateTime( doc.fechaEmision );
-            if ( !dateTimeEmisionMovimiento.isValid ) throw new InternalServerErrorException( ERROR_DOCUMENT.DATETIME_ISSUE_INVALIDATE );
+        item.documentosMovimiento.forEach( doc => {
+            if ( !doc.dateTimeEmision.isValid ) throw new InternalServerErrorException( ERROR_DOCUMENT.DATETIME_ISSUE_INVALIDATE );
             doc.set({
-                codigoSerie: `MOV${dateTimeEmisionMovimiento.toFormat( 'yyyy' )}`
+                codigoSerie: `MOV${doc.dateTimeEmision.toFormat( 'yyyy' )}`
             })
         } );
 
 
         const codigos = await this.documentoFuenteService.getRecordCodigos({
             transaction: s.transaction,
-            series: [ item.codigoSerie!, ...item.documentosMovimientos.map( doc => doc.codigoSerie! ) ]
+            series: [ item.codigoSerie!, ...item.documentosMovimiento.map( doc => doc.codigoSerie! ) ]
         });
 
         item.set({
@@ -316,10 +329,10 @@ export class NotaVentaService {
         if ( item2validate.fechaAnulacion ) throw new InternalServerErrorException( ERROR_DOCUMENT.CANT_UPDATE_FROM_VOID );
         if ( item2validate.fechaEmision ) throw new InternalServerErrorException( ERROR_DOCUMENT.CANT_UPDATE_FROM_ISSUED );
 
-        const af1 = await DocumentoFuenteOrm.destroy({
+        const af1 = await DocumentoTransaccionOrm.destroy({
             transaction: s.transaction,
             where: {
-                uuid: item.uuid
+                id: item.id
             }
         });
         if ( af1 === 0 ) throw new InternalServerErrorException( ERROR.NON_UPDATE );
@@ -328,180 +341,201 @@ export class NotaVentaService {
         const almacenProductos = await this.dbPresetService.getObjectByTarget( s, new DbPreset({ target: 'nv_salida_bien_consumo.almacen_uuid' }) );
         if ( almacenProductos.valor === undefined ) throw new InternalServerErrorException( `${almacenProductos.titulo} NO ESTABLECIDO` );
 
-        const almacenProductosServicioReparacion = await this.dbPresetService.getObjectByTarget( s, new DbPreset({ target: 'nv_servicio_reparacion_recurso_bien_consumo.almacen_uuid' }) );
+        const almacenProductosServicioReparacion = await this.dbPresetService.getObjectByTarget( s, new DbPreset({ target: 'nv_servicio_reparacion_recurso_bien_consumo.almacen_uuid' }) );    
         if ( almacenProductosServicioReparacion.valor === undefined ) throw new InternalServerErrorException( `${almacenProductosServicioReparacion.titulo} NO ESTABLECIDO` );
 
         item.set({
-            id: item2validate.id,
-            uuid: item2validate.uuid,
-            codigoSerie: undefined,
-            codigoNumero: undefined,
-            fechaCreacion: item2validate.fechaCreacion,
-            fechaEmision: undefined,
-            fechaAnulacion: undefined,
-            docsEntradaEfectivo: [],
-            docsEntradaBienConsumo: [],
-            docsSalidaEfectivo: [],
-            docsSalidaBienConsumo: [],
             salidasBienConsumo: item.salidasBienConsumo.map( sal => sal.set({
-                uuid: v4(),
                 almacen: new Almacen({
                     uuid: almacenProductos.valor
                 })
             }) ),
             salidasProduccionServicioReparacion: item.salidasProduccionServicioReparacion.map( sal => sal.set({
-                uuid: v4(),
                 recursosBienConsumo: sal.recursosBienConsumo.map( recurso => recurso.set({
-                    uuid: v4(),
                     almacen: new Almacen({
                         uuid: almacenProductosServicioReparacion.valor
                     })
                 }) )
             }) )
-        })
-        .setRelation()
-        .procesarInformacion();
-
-        
-        await this.executeCreateCollection( s, [ item ] );
-        return await this.getObjectByUuid( s, item );
-    }
-
-
-    async updateAndIssue( s: SessionData, item: NotaVenta )
-    {
-        const dateTimeEmision = Prop.toDateTime( item.fechaEmision );
-        if ( !dateTimeEmision.isValid ) throw new InternalServerErrorException( ERROR_DOCUMENT.DATETIME_ISSUE_INVALIDATE );
-
-        const item2validate = await this.getObjectByUuid( s, item );
-        if ( item2validate.fechaAnulacion ) throw new InternalServerErrorException( ERROR_DOCUMENT.CANT_UPDATE_FROM_VOID );
-        if ( item2validate.fechaEmision ) throw new InternalServerErrorException( ERROR_DOCUMENT.CANT_UPDATE_FROM_ISSUED );
-
-        const af1 = await DocumentoFuenteOrm.destroy({
-            transaction: s.transaction,
-            where: {
-                uuid: item.uuid
-            }
         });
-        if ( af1 === 0 ) throw new InternalServerErrorException( ERROR.NON_UPDATE );
 
 
-        const almacenProductos = await this.dbPresetService.getObjectByTarget( s, new DbPreset({ target: 'nv_salida_bien_consumo.almacen_uuid' }) );
-        if ( almacenProductos.valor === undefined ) throw new InternalServerErrorException( `${almacenProductos.titulo} NO ESTABLECIDO` );
-
-        const almacenProductosServicioReparacion = await this.dbPresetService.getObjectByTarget( s, new DbPreset({ target: 'nv_servicio_reparacion_recurso_bien_consumo.almacen_uuid' }) );
-        if ( almacenProductosServicioReparacion.valor === undefined ) throw new InternalServerErrorException( `${almacenProductosServicioReparacion.titulo} NO ESTABLECIDO` );
-
-        item.set({
-            id: item2validate.id,
-            uuid: item2validate.uuid,
-            codigoSerie: `NV${dateTimeEmision.toFormat( 'yyyy' )}`,
-            fechaCreacion: item2validate.fechaCreacion,
-            fechaAnulacion: undefined,
-            salidasBienConsumo: item.salidasBienConsumo.map( sal => sal.set({
-                uuid: v4(),
-                almacen: new Almacen({
-                    uuid: almacenProductos.valor
-                })
-            }) ),
-            salidasProduccionServicioReparacion: item.salidasProduccionServicioReparacion.map( sal => sal.set({
-                uuid: v4(),
-                recursosBienConsumo: sal.recursosBienConsumo.map( recurso => recurso.set({
-                    uuid: v4(),
-                    almacen: new Almacen({
-                        uuid: almacenProductosServicioReparacion.valor
-                    })
+        if ( !item.dateTimeEmision.isValid ) {
+            item.set({
+                id: item2validate.id,
+                uuid: item2validate.uuid,
+                codigoSerie: undefined,
+                codigoNumero: undefined,
+                fechaCreacion: item2validate.fechaCreacion,
+                fechaEmision: undefined,
+                fechaAnulacion: undefined,
+                usuario: s.usuarioSession,
+                docsEntradaEfectivo: [],
+                docsEntradaBienConsumo: [],
+                docsSalidaEfectivo: [],
+                docsSalidaBienConsumo: [],
+                salidasBienConsumo: item.salidasBienConsumo.map( sal => sal.set({
+                    uuid: v4()
                 }) ),
-                recursosServicio: sal.recursosServicio.map( recurso => recurso.set({
+                salidasProduccionServicioReparacion: item.salidasProduccionServicioReparacion.map( sal => sal.set({
+                    uuid: v4(),
+                    recursosBienConsumo: sal.recursosBienConsumo.map( recurso => recurso.set({
+                        uuid: v4()
+                    }) ),
+                    recursosServicio: sal.recursosServicio.map( recurso => recurso.set({
+                        uuid: v4()
+                    }) )
+                }) ),
+                entradasEfectivo: item.entradasEfectivo.map( ent => ent.set({
                     uuid: v4()
                 }) )
-            }) ),
-            entradasEfectivo: item.entradasEfectivo.map( ent => ent.set({
-                uuid: v4()
-            }) ),
-            docsEntradaEfectivo: item.docsEntradaEfectivo.map( doc => doc.set({
-                uuid: v4(),
-                entradas: doc.entradas.map( ent => ent.set({
-                    uuid: v4()
-                }) )
-            }) ),
-            docsEntradaBienConsumo: item.docsEntradaBienConsumo.map( doc => doc.set({
-                uuid: v4(),
-                entradas: doc.entradas.map( ent => ent.set({
-                    uuid: v4()
-                }) )
-            }) ),
-            docsSalidaEfectivo: item.docsSalidaEfectivo.map( doc => doc.set({
-                uuid: v4(),
-                salidas: doc.salidas.map( sal => sal.set({
-                    uuid: v4()
-                }) )
-            }) ),
-            docsSalidaBienConsumo: item.docsSalidaBienConsumo.map( doc => doc.set({
-                uuid: v4(),
-                salidas: doc.salidas.map( sal => sal.set({
-                    uuid: v4()
-                }) )
-            }) )
-        })
-
-        item.documentosMovimientos.forEach( doc => {
-            const dateTimeEmisionMovimiento = Prop.toDateTime( doc.fechaEmision );
-            if ( !dateTimeEmisionMovimiento.isValid ) throw new InternalServerErrorException( ERROR_DOCUMENT.DATETIME_ISSUE_INVALIDATE );
-            doc.set({
-                codigoSerie: `MOV${dateTimeEmisionMovimiento.toFormat( 'yyyy' )}`
             })
-        } );
+            .setRelation()
+            .procesarInformacion();
+    
+            await DocumentoFuenteOrm.update({
+                concepto: item.concepto,
+                importeNeto: item.importeNeto,
+                usuarioUuid: item.usuario?.uuid,
+                fechaActualizacion: item.fechaActualizacion
+            }, {
+                transaction: s.transaction,
+                where: {
+                    uuid: item.uuid
+                }
+            });
 
+            await this.documentoTransaccionService.executeCreateCollection( s, [ item ], false );
+            await this.executeCreateCollection( s, [ item ], false );
+        }
+        else {
+            item.set({
+                id: item2validate.id,
+                uuid: item2validate.uuid,
+                codigoSerie: `NV${item.dateTimeEmision.toFormat( 'yyyy' )}`,
+                fechaCreacion: item2validate.fechaCreacion,
+                fechaAnulacion: undefined,
+                usuario: s.usuarioSession,
+                salidasBienConsumo: item.salidasBienConsumo.map( sal => sal.set({
+                    uuid: v4()
+                }) ),
+                salidasProduccionServicioReparacion: item.salidasProduccionServicioReparacion.map( sal => sal.set({
+                    uuid: v4(),
+                    recursosBienConsumo: sal.recursosBienConsumo.map( recurso => recurso.set({
+                        uuid: v4()
+                    }) ),
+                    recursosServicio: sal.recursosServicio.map( recurso => recurso.set({
+                        uuid: v4()
+                    }) )
+                }) ),
+                entradasEfectivo: item.entradasEfectivo.map( ent => ent.set({
+                    uuid: v4()
+                }) ),
+                docsEntradaEfectivo: item.docsEntradaEfectivo.map( doc => doc.set({
+                    uuid: v4(),
+                    usuario: s.usuarioSession,
+                    entradas: doc.entradas.map( ent => ent.set({
+                        uuid: v4()
+                    }) )
+                }) ),
+                docsEntradaBienConsumo: item.docsEntradaBienConsumo.map( doc => doc.set({
+                    uuid: v4(),
+                    usuario: s.usuarioSession,
+                    entradas: doc.entradas.map( ent => ent.set({
+                        uuid: v4()
+                    }) )
+                }) ),
+                docsSalidaEfectivo: item.docsSalidaEfectivo.map( doc => doc.set({
+                    uuid: v4(),
+                    usuario: s.usuarioSession,
+                    salidas: doc.salidas.map( sal => sal.set({
+                        uuid: v4()
+                    }) )
+                }) ),
+                docsSalidaBienConsumo: item.docsSalidaBienConsumo.map( doc => doc.set({
+                    uuid: v4(),
+                    usuario: s.usuarioSession,
+                    salidas: doc.salidas.map( sal => sal.set({
+                        uuid: v4()
+                    }) )
+                }) )
+            })
 
-        const codigos = await this.documentoFuenteService.getRecordCodigos({
-            transaction: s.transaction,
-            series: [ item.codigoSerie!, ...item.documentosMovimientos.map( doc => doc.codigoSerie! ) ]
-        });
-
-        item.set({
-            codigoNumero: codigos[item.codigoSerie!],
-            docsEntradaEfectivo: item.docsEntradaEfectivo.map( doc => {
+            item.documentosMovimiento.forEach( doc => {
+                if ( !doc.dateTimeEmision.isValid ) throw new InternalServerErrorException( ERROR_DOCUMENT.DATETIME_ISSUE_INVALIDATE );
                 doc.set({
-                    codigoNumero: codigos[doc.codigoSerie!]
+                    codigoSerie: `MOV${doc.dateTimeEmision.toFormat( 'yyyy' )}`
                 })
-                codigos[doc.codigoSerie!]++;
-
-                return doc;
-            } ),
-            docsEntradaBienConsumo: item.docsEntradaBienConsumo.map( doc => {
-                doc.set({
-                    codigoNumero: codigos[doc.codigoSerie!]
-                })
-                codigos[doc.codigoSerie!]++;
-
-                return doc;
-            } ),
-            docsSalidaEfectivo: item.docsSalidaEfectivo.map( doc => {
-                doc.set({
-                    codigoNumero: codigos[doc.codigoSerie!]
-                })
-                codigos[doc.codigoSerie!]++;
-
-                return doc;
-            } ),
-            docsSalidaBienConsumo: item.docsSalidaBienConsumo.map( doc => {
-                doc.set({
-                    codigoNumero: codigos[doc.codigoSerie!]
-                })
-                codigos[doc.codigoSerie!]++;
-
-                return doc;
-            } )
-        })
-        codigos[item.codigoSerie!]++;
+            } );
 
 
-        item.setRelation()
-        .procesarInformacion();
+            const codigos = await this.documentoFuenteService.getRecordCodigos({
+                transaction: s.transaction,
+                series: [ item.codigoSerie!, ...item.documentosMovimiento.map( doc => doc.codigoSerie! ) ]
+            });
 
-        
-        await this.executeCreateCollection( s, [ item ] );
+            item.set({
+                codigoNumero: codigos[item.codigoSerie!],
+                docsEntradaEfectivo: item.docsEntradaEfectivo.map( doc => {
+                    doc.set({
+                        codigoNumero: codigos[doc.codigoSerie!]
+                    })
+                    codigos[doc.codigoSerie!]++;
+
+                    return doc;
+                } ),
+                docsEntradaBienConsumo: item.docsEntradaBienConsumo.map( doc => {
+                    doc.set({
+                        codigoNumero: codigos[doc.codigoSerie!]
+                    })
+                    codigos[doc.codigoSerie!]++;
+
+                    return doc;
+                } ),
+                docsSalidaEfectivo: item.docsSalidaEfectivo.map( doc => {
+                    doc.set({
+                        codigoNumero: codigos[doc.codigoSerie!]
+                    })
+                    codigos[doc.codigoSerie!]++;
+
+                    return doc;
+                } ),
+                docsSalidaBienConsumo: item.docsSalidaBienConsumo.map( doc => {
+                    doc.set({
+                        codigoNumero: codigos[doc.codigoSerie!]
+                    })
+                    codigos[doc.codigoSerie!]++;
+
+                    return doc;
+                } )
+            })
+            codigos[item.codigoSerie!]++;
+
+
+            item.setRelation()
+            .procesarInformacion();
+
+
+            await DocumentoFuenteOrm.update({
+                codigoSerie: item.codigoSerie,
+                codigoNumero: item.codigoNumero,
+                fechaEmision: item.fechaEmision,
+                fechaAnulacion: item.fechaAnulacion,
+                concepto: item.concepto,
+                importeNeto: item.importeNeto,
+                usuarioUuid: item.usuario?.uuid,
+                fechaActualizacion: item.fechaActualizacion
+            }, {
+                transaction: s.transaction,
+                where: {
+                    uuid: item.uuid
+                }
+            });
+
+            await this.documentoTransaccionService.executeCreateCollection( s, [ item ], false );
+            await this.executeCreateCollection( s, [ item ], false );
+        }
+
         return await this.getObjectByUuid( s, item );
     }
 
@@ -511,21 +545,12 @@ export class NotaVentaService {
         const item2validate = await this.getObjectByUuid( s, item );
         if ( item2validate.fechaAnulacion ) throw new InternalServerErrorException( ERROR_DOCUMENT.CANT_UPDATE_FROM_VOID );
 
-        const uuidsMovimientos = [
-            ...item2validate.salidasBienConsumo.map( sal => sal.uuid ).filter( uuid => uuid !== undefined ),
-            ...item2validate.salidasProduccionServicioReparacion.map( sal => sal.uuid ).filter( uuid => uuid !== undefined ),
-            ...item2validate.entradasEfectivo.map( ent => ent.uuid ).filter( uuid => uuid !== undefined ),
-            ...item2validate.docsEntradaEfectivo.flatMap( doc => doc.entradas.map( ent => ent.uuid ).filter( uuid => uuid !== undefined ) ),
-            ...item2validate.docsEntradaBienConsumo.flatMap( doc => doc.entradas.map( ent => ent.uuid ).filter( uuid => uuid !== undefined ) ),
-            ...item2validate.docsSalidaEfectivo.flatMap( doc => doc.salidas.map( sal => sal.uuid ).filter( uuid => uuid !== undefined ) ),
-            ...item2validate.docsSalidaBienConsumo.flatMap( doc => doc.salidas.map( sal => sal.uuid ).filter( uuid => uuid !== undefined ) ),
-        ];
-        await this.movimientoRecursoService.verifyUuidReferences( s, uuidsMovimientos )
-
+        await this.movimientoRecursoService.verifyUuidReferences( s, item2validate.movimientos.map( mov => mov.uuid ).filter( uuid => uuid !== undefined ) );
         
         const [af1] = await DocumentoFuenteOrm.update({
             fechaAnulacion: item.fechaAnulacion,
-            fechaActualizacion: item.fechaActualizacion
+            fechaActualizacion: item.fechaActualizacion,
+            usuarioUuid: s.usuarioSession.uuid,
         }, {
             transaction: s.transaction,
             where: {

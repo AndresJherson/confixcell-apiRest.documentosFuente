@@ -37,11 +37,14 @@ export class DocumentoFuenteService implements OnModuleInit {
 
     async executeCreateCollection( s: SessionData, items: DocumentoFuente[] )
     {
-        const record: Record<string, DocumentoFuente> = {}
-        
-        const records2create: Partial<DocumentoFuenteOrm>[] = items.map( item => {
-            if ( item.uuid ) record[item.uuid] = item;
-            return ({
+        const transaction = s.transaction;
+        const recordItems: Record<string, DocumentoFuente> = {}
+        items.forEach( item => {
+            if ( item.uuid ) recordItems[item.uuid] = item;
+        } );
+
+        const orms = await DocumentoFuenteOrm.bulkCreate(
+            items.map( item => ({
                 uuid: item.uuid,
                 codigoSerie: item.codigoSerie,
                 codigoNumero: item.codigoNumero,
@@ -52,17 +55,11 @@ export class DocumentoFuenteService implements OnModuleInit {
                 usuarioUuid: item.usuario?.uuid,
                 fechaCreacion: item.fechaCreacion,
                 fechaActualizacion: item.fechaActualizacion
-            });
-        } );
-
-        const orms = await DocumentoFuenteOrm.bulkCreate(
-            records2create,
-            {
-                transaction: s.transaction,
-            }
+            }) ),
+            { transaction }
         );
 
-        return orms.map( orm => record[orm.uuid].set({ ...orm.get() }) )
+        orms.forEach( orm => recordItems[orm.uuid].set({ ...orm.get() }).setRelation() )
     }
 
 

@@ -13,6 +13,7 @@ import { SalidaEfectivoService } from 'src/domain/application/movimientos-recurs
 import { DocumentoFuenteService } from '../../documento-fuente.service';
 import { DocumentoFuenteOrm } from 'src/infrastructure/entities/DocumentosFuente/DocumentoFuenteOrm';
 import { MovimientoRecursoService } from 'src/domain/application/movimientos-recurso/movimiento-recurso.service';
+import { DocumentoTransaccionOrm } from 'src/infrastructure/entities/DocumentosFuente/DocumentosTransaccion/DocumentoTransaccionOrm';
 
 @Injectable()
 export class NotaTransaccionSalidaService {
@@ -37,7 +38,7 @@ export class NotaTransaccionSalidaService {
         this.documentoTransaccionService = this.moduleRef.get( DocumentoTransaccionService, { strict: false } );
         this.documentoMovimientoService = this.moduleRef.get( DocumentoMovimientoService, { strict: false } );
         this.salidaEfectivoService = this.moduleRef.get( SalidaEfectivoService, { strict: false } );
-            this.movimientoRecursoService = this.moduleRef.get( MovimientoRecursoService, { strict: false } );
+        this.movimientoRecursoService = this.moduleRef.get( MovimientoRecursoService, { strict: false } );
 
         if ( !this.documentoFuenteService ) throw new InternalServerErrorException( ERROR.NON_SET_SERVICE );
         if ( !this.documentoTransaccionService ) throw new InternalServerErrorException( ERROR.NON_SET_SERVICE );
@@ -47,11 +48,12 @@ export class NotaTransaccionSalidaService {
     }
 
 
-    async executeCreateCollection( s: SessionData, ntss: NotaTransaccionSalida[] )
+    async executeCreateCollection( s: SessionData, items: NotaTransaccionSalida[], withSupertype: boolean = true )
     {
-        await this.documentoTransaccionService.executeCreateCollection( s, ntss );
+        if ( withSupertype )
+            await this.documentoTransaccionService.executeCreateCollection( s, items );
 
-        await NotaTransaccionSalidaOrm.bulkCreate( ntss.map( item => ({
+        await NotaTransaccionSalidaOrm.bulkCreate( items.map( item => ({
             id: item.id,
             clienteUuid: item.cliente?.uuid,
             clienteDocumentoIdentificacionUuid: item.clienteDocumentoIdentificacion?.uuid,
@@ -60,7 +62,6 @@ export class NotaTransaccionSalidaService {
             clienteCelular: item.clienteCelular,
             liquidacionTipoId: item.liquidacion?.id,
             ntsDetallesOrm: item.detalles.map( detalle => new NtsDetalleOrm({
-                id: detalle.id,
                 notaTransaccionSalidaId: detalle.notaTransaccionSalida?.id,
                 recursoUuid: detalle.recurso?.uuid,
                 concepto: detalle.concepto,
@@ -73,7 +74,7 @@ export class NotaTransaccionSalidaService {
             transaction: s.transaction
         } );
 
-        await this.salidaEfectivoService.executeCreateCollection( s, ntss.filter( item => item.liquidacion?.id === 2 )
+        await this.salidaEfectivoService.executeCreateCollection( s, items.filter( item => item.liquidacion?.id === 2 )
             .map( item => item.credito )
             .filter( credito => credito !== undefined ) );
     }
@@ -128,7 +129,7 @@ export class NotaTransaccionSalidaService {
             transaction: s.transaction,
             query: `
                 ${this.query}
-                and df.uuid ${item.uuid === undefined ? ' is null ': ' = :uuid '}
+                where df.uuid ${item.uuid === undefined ? ' is null ': ' = :uuid '}
             `,
             parameters: {
                 uuid: item.uuid ?? null
@@ -149,6 +150,7 @@ export class NotaTransaccionSalidaService {
             codigoNumero: undefined,
             fechaEmision: undefined,
             fechaAnulacion: undefined,
+            usuario: s.usuarioSession,
             detalles: item.detalles.map( detalle => detalle.set({
                 uuid: v4()
             }) ),
@@ -168,54 +170,57 @@ export class NotaTransaccionSalidaService {
 
     async createAndIssue( s: SessionData, item: NotaTransaccionSalida )
     {   
-        const dateTimeEmision = Prop.toDateTime( item.fechaEmision );
-        if ( !dateTimeEmision.isValid ) throw new InternalServerErrorException( ERROR_DOCUMENT.DATETIME_ISSUE_INVALIDATE );
+        if ( !item.dateTimeEmision.isValid ) throw new InternalServerErrorException( ERROR_DOCUMENT.DATETIME_ISSUE_INVALIDATE );
 
         item.set({
             uuid: v4(),
             fechaAnulacion: undefined,
-            codigoSerie: `NTS${dateTimeEmision.toFormat( 'yyyy' )}`,
+            codigoSerie: `NTS${item.dateTimeEmision.toFormat( 'yyyy' )}`,
+            usuario: s.usuarioSession,
             detalles: item.detalles.map( detalle => detalle.set({
                 uuid: v4()
             }) ),
             docsEntradaEfectivo: item.docsEntradaEfectivo.map( doc => doc.set({
                 uuid: v4(),
+                usuario: s.usuarioSession,
                 entradas: doc.entradas.map( ent => ent.set({
                     uuid: v4()
                 }) )
             }) ),
             docsEntradaBienConsumo: item.docsEntradaBienConsumo.map( doc => doc.set({
                 uuid: v4(),
+                usuario: s.usuarioSession,
                 entradas: doc.entradas.map( ent => ent.set({
                     uuid: v4()
                 }) )
             }) ),
             docsSalidaEfectivo: item.docsSalidaEfectivo.map( doc => doc.set({
                 uuid: v4(),
+                usuario: s.usuarioSession,
                 salidas: doc.salidas.map( sal => sal.set({
                     uuid: v4()
                 }) )
             }) ),
             docsSalidaBienConsumo: item.docsSalidaBienConsumo.map( doc => doc.set({
                 uuid: v4(),
+                usuario: s.usuarioSession,
                 salidas: doc.salidas.map( sal => sal.set({
                     uuid: v4()
                 }) )
             }) )
         });
 
-        item.documentosMovimientos.forEach( doc => {
-            const dateTimeEmisionMovimiento = Prop.toDateTime( doc.fechaEmision );
-            if ( !dateTimeEmisionMovimiento.isValid ) throw new InternalServerErrorException( ERROR_DOCUMENT.DATETIME_ISSUE_INVALIDATE );
+        item.documentosMovimiento.forEach( doc => {
+            if ( !doc.dateTimeEmision.isValid ) throw new InternalServerErrorException( ERROR_DOCUMENT.DATETIME_ISSUE_INVALIDATE );
             doc.set({
-                codigoSerie: `MOV${dateTimeEmisionMovimiento.toFormat( 'yyyy' )}`
+                codigoSerie: `MOV${doc.dateTimeEmision.toFormat( 'yyyy' )}`
             })
         } );
 
 
         const codigos = await this.documentoFuenteService.getRecordCodigos({
             transaction: s.transaction,
-            series: [ item.codigoSerie!, ...item.documentosMovimientos.map( doc => doc.codigoSerie! ) ]
+            series: [ item.codigoSerie!, ...item.documentosMovimiento.map( doc => doc.codigoSerie! ) ]
         });
 
         item.set({
@@ -271,149 +276,167 @@ export class NotaTransaccionSalidaService {
         if ( item2validate.fechaAnulacion ) throw new InternalServerErrorException( ERROR_DOCUMENT.CANT_UPDATE_FROM_VOID );
         if ( item2validate.fechaEmision ) throw new InternalServerErrorException( ERROR_DOCUMENT.CANT_UPDATE_FROM_ISSUED );
 
-        const af1 = await DocumentoFuenteOrm.destroy({
+        const af1 = await DocumentoTransaccionOrm.destroy({
             transaction: s.transaction,
             where: {
-                uuid: item.uuid
+                id: item.id
             }
         });
         if ( af1 === 0 ) throw new InternalServerErrorException( ERROR.NON_UPDATE );
 
 
-        item.set({
-            id: item2validate.id,
-            uuid: item2validate.uuid,
-            codigoSerie: undefined,
-            codigoNumero: undefined,
-            fechaCreacion: item2validate.fechaCreacion,
-            fechaEmision: undefined,
-            fechaAnulacion: undefined,
-            detalles: item.detalles.map( detalle => detalle.set({
-                uuid: v4()
-            }) ),
-            docsEntradaEfectivo: [],
-            docsEntradaBienConsumo: [],
-            docsSalidaEfectivo: [],
-            docsSalidaBienConsumo: []
-        })
-        .setRelation()
-        .procesarInformacion();
-
-
-        await this.executeCreateCollection( s, [ item ] );
-        return await this.getObjectByUuid( s, item );
-    }
-
-
-    async updateAndIssue( s: SessionData, item: NotaTransaccionSalida )
-    {
-        const dateTimeEmision = Prop.toDateTime( item.fechaEmision );
-        if ( !dateTimeEmision.isValid ) throw new InternalServerErrorException( ERROR_DOCUMENT.DATETIME_ISSUE_INVALIDATE );
-                
-        const item2validate = await this.getObjectByUuid( s, item );
-        if ( item2validate.fechaAnulacion ) throw new InternalServerErrorException( ERROR_DOCUMENT.CANT_UPDATE_FROM_VOID );
-        if ( item2validate.fechaEmision ) throw new InternalServerErrorException( ERROR_DOCUMENT.CANT_UPDATE_FROM_ISSUED );
-
-        const af1 = await DocumentoFuenteOrm.destroy({
-            transaction: s.transaction,
-            where: {
-                uuid: item.uuid
-            }
-        });
-        if ( af1 === 0 ) throw new InternalServerErrorException( ERROR.NON_UPDATE );
-
-
-        item.set({
-            id: item2validate.id,
-            uuid: item2validate.uuid,
-            codigoSerie: `NTS${dateTimeEmision.toFormat( 'yyyy' )}`,
-            fechaCreacion: item2validate.fechaCreacion,
-            fechaAnulacion: undefined,
-            detalles: item.detalles.map( detalle => detalle.set({
-                uuid: v4()
-            }) ),
-            docsEntradaEfectivo: item.docsEntradaEfectivo.map( doc => doc.set({
-                uuid: v4(),
-                entradas: doc.entradas.map( ent => ent.set({
+        if ( !item.dateTimeEmision.isValid ) {
+            item.set({
+                id: item2validate.id,
+                uuid: item2validate.uuid,
+                codigoSerie: undefined,
+                codigoNumero: undefined,
+                fechaCreacion: item2validate.fechaCreacion,
+                fechaEmision: undefined,
+                fechaAnulacion: undefined,
+                usuario: s.usuarioSession,
+                detalles: item.detalles.map( detalle => detalle.set({
                     uuid: v4()
-                }) )
-            }) ),
-            docsEntradaBienConsumo: item.docsEntradaBienConsumo.map( doc => doc.set({
-                uuid: v4(),
-                entradas: doc.entradas.map( ent => ent.set({
-                    uuid: v4()
-                }) )
-            }) ),
-            docsSalidaEfectivo: item.docsSalidaEfectivo.map( doc => doc.set({
-                uuid: v4(),
-                salidas: doc.salidas.map( sal => sal.set({
-                    uuid: v4()
-                }) )
-            }) ),
-            docsSalidaBienConsumo: item.docsSalidaBienConsumo.map( doc => doc.set({
-                uuid: v4(),
-                salidas: doc.salidas.map( sal => sal.set({
-                    uuid: v4()
-                }) )
-            }) )
-        });
-
-        item.documentosMovimientos.forEach( doc => {
-            const dateTimeEmisionMovimiento = Prop.toDateTime( doc.fechaEmision );
-            if ( !dateTimeEmisionMovimiento.isValid ) throw new InternalServerErrorException( ERROR_DOCUMENT.DATETIME_ISSUE_INVALIDATE );
-            doc.set({
-                codigoSerie: `MOV${dateTimeEmisionMovimiento.toFormat( 'yyyy' )}`
+                }) ),
+                docsEntradaEfectivo: [],
+                docsEntradaBienConsumo: [],
+                docsSalidaEfectivo: [],
+                docsSalidaBienConsumo: []
             })
-        } );
+            .setRelation()
+            .procesarInformacion();
 
+            await DocumentoFuenteOrm.update({
+                concepto: item.concepto,
+                importeNeto: item.importeNeto,
+                usuarioUuid: item.usuario?.uuid,
+                fechaActualizacion: item.fechaActualizacion
+            }, {
+                transaction: s.transaction,
+                where: {
+                    uuid: item.uuid
+                }
+            });
 
-        const codigos = await this.documentoFuenteService.getRecordCodigos({
-            transaction: s.transaction,
-            series: [ item.codigoSerie!, ...item.documentosMovimientos.map( doc => doc.codigoSerie! ) ]
-        });
+            await this.documentoTransaccionService.executeCreateCollection( s, [ item ], false );
+            await this.executeCreateCollection( s, [ item ], false );
+        }
+        else {
+            item.set({
+                id: item2validate.id,
+                uuid: item2validate.uuid,
+                codigoSerie: `NTS${item.dateTimeEmision.toFormat( 'yyyy' )}`,
+                fechaCreacion: item2validate.fechaCreacion,
+                fechaAnulacion: undefined,
+                usuario: s.usuarioSession,
+                detalles: item.detalles.map( detalle => detalle.set({
+                    uuid: v4()
+                }) ),
+                docsEntradaEfectivo: item.docsEntradaEfectivo.map( doc => doc.set({
+                    uuid: v4(),
+                    usuario: s.usuarioSession,
+                    entradas: doc.entradas.map( ent => ent.set({
+                        uuid: v4()
+                    }) )
+                }) ),
+                docsEntradaBienConsumo: item.docsEntradaBienConsumo.map( doc => doc.set({
+                    uuid: v4(),
+                    usuario: s.usuarioSession,
+                    entradas: doc.entradas.map( ent => ent.set({
+                        uuid: v4()
+                    }) )
+                }) ),
+                docsSalidaEfectivo: item.docsSalidaEfectivo.map( doc => doc.set({
+                    uuid: v4(),
+                    usuario: s.usuarioSession,
+                    salidas: doc.salidas.map( sal => sal.set({
+                        uuid: v4()
+                    }) )
+                }) ),
+                docsSalidaBienConsumo: item.docsSalidaBienConsumo.map( doc => doc.set({
+                    uuid: v4(),
+                    usuario: s.usuarioSession,
+                    salidas: doc.salidas.map( sal => sal.set({
+                        uuid: v4()
+                    }) )
+                }) )
+            });
 
-        item.set({
-            codigoNumero: codigos[item.codigoSerie!],
-            docsEntradaEfectivo: item.docsEntradaEfectivo.map( doc => {
+            item.documentosMovimiento.forEach( doc => {
+                if ( !doc.dateTimeEmision.isValid ) throw new InternalServerErrorException( ERROR_DOCUMENT.DATETIME_ISSUE_INVALIDATE );
                 doc.set({
-                    codigoNumero: codigos[doc.codigoSerie!]
+                    codigoSerie: `MOV${doc.dateTimeEmision.toFormat( 'yyyy' )}`
                 })
-                codigos[doc.codigoSerie!]++;
-
-                return doc;
-            } ),
-            docsEntradaBienConsumo: item.docsEntradaBienConsumo.map( doc => {
-                doc.set({
-                    codigoNumero: codigos[doc.codigoSerie!]
-                })
-                codigos[doc.codigoSerie!]++;
-
-                return doc;
-            } ),
-            docsSalidaEfectivo: item.docsSalidaEfectivo.map( doc => {
-                doc.set({
-                    codigoNumero: codigos[doc.codigoSerie!]
-                })
-                codigos[doc.codigoSerie!]++;
-
-                return doc;
-            } ),
-            docsSalidaBienConsumo: item.docsSalidaBienConsumo.map( doc => {
-                doc.set({
-                    codigoNumero: codigos[doc.codigoSerie!]
-                })
-                codigos[doc.codigoSerie!]++;
-
-                return doc;
-            } )
-        })
-        codigos[item.codigoSerie!]++;
+            } );
 
 
-        item.procesarInformacion();
-        
-        
-        await this.executeCreateCollection( s, [ item ] );
+            const codigos = await this.documentoFuenteService.getRecordCodigos({
+                transaction: s.transaction,
+                series: [ item.codigoSerie!, ...item.documentosMovimiento.map( doc => doc.codigoSerie! ) ]
+            });
+
+            item.set({
+                codigoNumero: codigos[item.codigoSerie!],
+                docsEntradaEfectivo: item.docsEntradaEfectivo.map( doc => {
+                    doc.set({
+                        codigoNumero: codigos[doc.codigoSerie!]
+                    })
+                    codigos[doc.codigoSerie!]++;
+
+                    return doc;
+                } ),
+                docsEntradaBienConsumo: item.docsEntradaBienConsumo.map( doc => {
+                    doc.set({
+                        codigoNumero: codigos[doc.codigoSerie!]
+                    })
+                    codigos[doc.codigoSerie!]++;
+
+                    return doc;
+                } ),
+                docsSalidaEfectivo: item.docsSalidaEfectivo.map( doc => {
+                    doc.set({
+                        codigoNumero: codigos[doc.codigoSerie!]
+                    })
+                    codigos[doc.codigoSerie!]++;
+
+                    return doc;
+                } ),
+                docsSalidaBienConsumo: item.docsSalidaBienConsumo.map( doc => {
+                    doc.set({
+                        codigoNumero: codigos[doc.codigoSerie!]
+                    })
+                    codigos[doc.codigoSerie!]++;
+
+                    return doc;
+                } )
+            })
+            codigos[item.codigoSerie!]++;
+
+
+            item.setRelation()
+            .procesarInformacion();
+
+
+            await DocumentoFuenteOrm.update({
+                codigoSerie: item.codigoSerie,
+                codigoNumero: item.codigoNumero,
+                fechaEmision: item.fechaEmision,
+                fechaAnulacion: item.fechaAnulacion,
+                concepto: item.concepto,
+                importeNeto: item.importeNeto,
+                usuarioUuid: item.usuario?.uuid,
+                fechaActualizacion: item.fechaActualizacion
+            }, {
+                transaction: s.transaction,
+                where: {
+                    uuid: item.uuid
+                }
+            });
+
+            await this.documentoTransaccionService.executeCreateCollection( s, [ item ], false );
+            await this.executeCreateCollection( s, [ item ], false );
+        }
+
         return await this.getObjectByUuid( s, item );
     }
 
@@ -423,17 +446,12 @@ export class NotaTransaccionSalidaService {
         const item2validate = await this.getObjectByUuid( s, item );
         if ( item2validate.fechaAnulacion ) throw new InternalServerErrorException( ERROR_DOCUMENT.CANT_UPDATE_FROM_VOID );
 
-        const uuidsMovimientos = [
-            ...item2validate.docsEntradaEfectivo.flatMap( doc => doc.entradas.map( ent => ent.uuid ).filter( uuid => uuid !== undefined ) ),
-            ...item2validate.docsEntradaBienConsumo.flatMap( doc => doc.entradas.map( ent => ent.uuid ).filter( uuid => uuid !== undefined ) ),
-            ...item2validate.docsSalidaEfectivo.flatMap( doc => doc.salidas.map( sal => sal.uuid ).filter( uuid => uuid !== undefined ) ),
-            ...item2validate.docsSalidaBienConsumo.flatMap( doc => doc.salidas.map( sal => sal.uuid ).filter( uuid => uuid !== undefined ) ),
-        ];
-        await this.movimientoRecursoService.verifyUuidReferences( s, uuidsMovimientos )
+        await this.movimientoRecursoService.verifyUuidReferences( s, item2validate.movimientos.map( mov => mov.uuid ).filter( uuid => uuid !== undefined ) )
 
         const [af1] = await DocumentoFuenteOrm.update({
             fechaAnulacion: item.fechaAnulacion,
-            fechaActualizacion: item.fechaActualizacion
+            fechaActualizacion: item.fechaActualizacion,
+            usuarioUuid: s.usuarioSession.uuid
         }, {
             transaction: s.transaction,
             where: {

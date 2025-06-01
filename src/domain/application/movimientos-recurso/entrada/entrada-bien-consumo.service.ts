@@ -1,6 +1,5 @@
-import { Almacen, BienConsumo, EntradaBienConsumo, EntradaBienConsumoValorNuevo, EntradaBienConsumoValorSalida } from '@confixcell/modelos';
+import { BienConsumo, EntradaBienConsumo, EntradaBienConsumoValorNuevo, EntradaBienConsumoValorSalida } from '@confixcell/modelos';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { Op } from 'sequelize';
 import { EntradaBienConsumoOrm } from 'src/infrastructure/entities/MovimientosRecurso/Entrada/EntradaBienConsumo/EntradaBienConsumoOrm';
 import { EntradaBienConsumoValorNuevoOrm } from 'src/infrastructure/entities/MovimientosRecurso/Entrada/EntradaBienConsumo/EntradaBienConsumoValorNuevoOrm';
 import { EntradaBienConsumoValorSalidaOrm } from 'src/infrastructure/entities/MovimientosRecurso/Entrada/EntradaBienConsumo/EntradaBienConsumoValorSalidaOrm';
@@ -18,31 +17,36 @@ export class EntradaBienConsumoService {
     async executeCreateCollection(s: SessionData, items: EntradaBienConsumo[])
     {
         const transaction = s.transaction;
-        
-        await EntradaBienConsumoOrm.bulkCreate(
-            items.map(ent => ({
-                id: ent.id,
-                uuid: ent.uuid,
-                documentoFuenteId: ent.documentoFuente?.id,
-                almacenUuid: ent.almacen?.uuid,
-                bienConsumoUuid: ent.bienConsumo?.uuid,
-                cantidadEntrante: ent.cantidadEntrante
+        const recordItems: Record<string, EntradaBienConsumo> = {};
+        items.forEach( item => {
+            if ( item.uuid ) recordItems[item.uuid] = item;
+        } );
+
+        const orms = await EntradaBienConsumoOrm.bulkCreate(
+            items.map(item => ({
+                uuid: item.uuid,
+                documentoFuenteId: item.documentoFuente?.id,
+                almacenUuid: item.almacen?.uuid,
+                bienConsumoUuid: item.bienConsumo?.uuid,
+                cantidadEntrante: item.cantidadEntrante
             })),
             { transaction }
         );
+
+        orms.forEach( orm => recordItems[orm.uuid].set({...orm.get()}).setRelation() )
         
 
-        for (const ent of items) {
-            if (ent instanceof EntradaBienConsumoValorNuevo) {
+        for (const item of items) {
+            if (item instanceof EntradaBienConsumoValorNuevo) {
                 await EntradaBienConsumoValorNuevoOrm.create({
-                    id: ent.id,
-                    importeValorUnitario: ent.importeValorUnitario
+                    id: item.id,
+                    importeValorUnitario: item.importeValorUnitario
                 }, { transaction });
             }
-            else if (ent instanceof EntradaBienConsumoValorSalida) {
+            else if (item instanceof EntradaBienConsumoValorSalida) {
                 await EntradaBienConsumoValorSalidaOrm.create({
-                    id: ent.id,
-                    salidaBienConsumoId: ent.salida?.id
+                    id: item.id,
+                    salidaBienConsumoId: item.salida?.id
                 }, { transaction });
             }
             else {
@@ -52,35 +56,33 @@ export class EntradaBienConsumoService {
     }
 
 
-    async getCollectionByAlmacenUuidByBienConsumoUuid( s: SessionData, almacen: Almacen, bienConsumo: BienConsumo )
+    async getCollectionByBienConsumoUuid( s: SessionData, bienConsumo: BienConsumo )
     {
         return await this.conectorService.executeQuery({
             target: EntradaBienConsumo.initialize,
             transaction: s.transaction,
             query: `
                 ${this.query}
-                where cte_entrada_bien_consumo.almacen_uuid ${almacen.uuid !== undefined ? ' = :almacenUuid ' : ' is null '}
-                and cte_entrada_bien_consumo.bien_consumo_uuid ${bienConsumo.uuid !== undefined ? ' = :bienConsumoUuid ' : ' is null '}
+                where cte_entrada_bien_consumo.bien_consumo_uuid ${bienConsumo.uuid !== undefined ? ' = :bienConsumoUuid ' : ' is null '}
             `,
             parameters: {
-                almacenUuid: almacen.uuid ?? null,
                 bienConsumoUuid: bienConsumo.uuid ?? null
             }
         });
     }
 
 
-    async getRecordByIds( s: SessionData, ids: number[] )
+    async getRecordByUuids( s: SessionData, uuids: number[] )
     {
         return await this.conectorService.executeQuery({
             target: EntradaBienConsumo.initialize,
             transaction: s.transaction,
             query: `
                 ${this.query}
-                where cte_entrada_bien_consumo.id ${!ids.length ? ' is null ' : ' in (:ids) '}
+                where cte_entrada_bien_consumo.uuid ${!uuids.length ? ' is null ' : ' in (:uuids) '}
             `,
             parameters: {
-                ids: !ids.length ? null : ids
+                uuids: !uuids.length ? null : uuids
             }
         });
     }
@@ -92,7 +94,6 @@ from (
     select 
         entrada_bien_consumo.id as id,
         entrada_bien_consumo.uuid as uuid,
-        entrada_bien_consumo.almacen_uuid as almacen_uuid,
         entrada_bien_consumo.bien_consumo_uuid as bien_consumo_uuid,
         json_object(
             'type', 'EntradaBienConsumoValorNuevo',
@@ -120,7 +121,6 @@ from (
     select 
         entrada_bien_consumo.id as id,
         entrada_bien_consumo.uuid as uuid,
-        entrada_bien_consumo.almacen_uuid as almacen_uuid,
         entrada_bien_consumo.bien_consumo_uuid as bien_consumo_uuid,
         json_object(
             'type', 'EntradaBienConsumoValorSalida',

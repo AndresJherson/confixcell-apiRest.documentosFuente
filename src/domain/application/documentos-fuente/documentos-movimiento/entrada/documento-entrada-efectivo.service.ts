@@ -52,7 +52,14 @@ export class DocumentoEntradaEfectivoService implements OnModuleInit {
         return await this.conectorService.executeQuery({
             target: DocumentoEntradaEfectivo,
             transaction: s.transaction,
-            query: this.query
+            query: `
+                ${this.query}
+                where exists (
+                    select 1
+                    from entrada_efectivo
+                    where entrada_efectivo.documento_fuente_id = documento_movimiento.id
+                )
+            `
         }).then( data => data.map( item => item.procesarInformacion() ) );
     }
 
@@ -64,7 +71,7 @@ export class DocumentoEntradaEfectivoService implements OnModuleInit {
             transaction: s.transaction,
             query: `
                 ${this.query}
-                and documento_fuente.uuid ${item.uuid === undefined ? ' is null ': ' = :uuid '}
+                where documento_fuente.uuid ${item.uuid === undefined ? ' is null ': ' = :uuid '}
             `,
             parameters: {
                 uuid: item.uuid ?? null
@@ -244,10 +251,5 @@ select json_object(
 ) as json
 from documento_movimiento
 left join documento_fuente on documento_fuente.id = documento_movimiento.id
-where exists (
-    select 1
-    from entrada_efectivo
-    where entrada_efectivo.documento_fuente_id = documento_movimiento.id
-)
     `;
 }

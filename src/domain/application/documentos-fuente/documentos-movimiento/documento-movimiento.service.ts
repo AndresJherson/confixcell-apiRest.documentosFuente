@@ -41,13 +41,13 @@ export class DocumentoMovimientoService implements OnModuleInit {
     }
 
 
-    async executeCreateCollection( s: SessionData, documentosMovimiento: DocumentoMovimiento[] )
+    async executeCreateCollection( s: SessionData, items: DocumentoMovimiento[] )
     {
-        await this.documentoFuenteService.executeCreateCollection( s, documentosMovimiento );
+        await this.documentoFuenteService.executeCreateCollection( s, items );
 
-        await DocumentoMovimientoOrm.bulkCreate( documentosMovimiento.map( doc => ({
-            id: doc.id,
-            documentoTransaccionId: doc.documentoTransaccion?.id
+        await DocumentoMovimientoOrm.bulkCreate( items.map( item => ({
+            id: item.id,
+            documentoTransaccionId: item.documentoTransaccion?.id
         }), ), {
             transaction: s.transaction
         } );

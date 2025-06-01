@@ -1,6 +1,5 @@
 import { NotaTransaccionSalidaCredito, SalidaEfectivo, SalidaEfectivoContado, SalidaEfectivoCredito } from '@confixcell/modelos';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { Op } from 'sequelize';
 import { NtsCreditoOrm } from 'src/infrastructure/entities/DocumentosFuente/DocumentosTransaccion/NotaTransaccionSalida/NtsCreditoOrm';
 import { NtsCuotaOrm } from 'src/infrastructure/entities/DocumentosFuente/DocumentosTransaccion/NotaTransaccionSalida/NtsCuotaOrm';
 import { SalidaEfectivoContadoOrm } from 'src/infrastructure/entities/MovimientosRecurso/Salida/SalidaEfectivo/SalidaEfectivoContadoOrm';
@@ -12,41 +11,45 @@ import { SessionData } from 'src/utils/interfaces';
 @Injectable()
 export class SalidaEfectivoService {
 
-    async executeCreateCollection(s: SessionData, salidasEfectivo: SalidaEfectivo[])
+    async executeCreateCollection(s: SessionData, items: SalidaEfectivo[])
     {
         const transaction = s.transaction;
+        const recordItems: Record<string, SalidaEfectivo> = {};
+        items.forEach( item => {
+            if ( item.uuid ) recordItems[item.uuid] = item;
+        } );
         
-        await SalidaEfectivoOrm.bulkCreate(
-            salidasEfectivo.map(sal => ({
-                id: sal.id,
-                uuid: sal.uuid,
-                documentoFuenteId: sal.documentoFuente?.id,
-                importeValorNeto: sal.importeValorNeto
+        const orms = await SalidaEfectivoOrm.bulkCreate(
+            items.map(item => ({
+                id: item.id,
+                uuid: item.uuid,
+                documentoFuenteId: item.documentoFuente?.id,
+                importeValorNeto: item.importeValorNeto
             })),
             { transaction }
         );
         
+        orms.forEach( orm => recordItems[orm.uuid].set({...orm.get()}).setRelation() );
 
-        for (let i = 0; i < salidasEfectivo.length; i++) {
-            const sal = salidasEfectivo[i];
+
+        for (const item of items) {
             
-            if (sal instanceof SalidaEfectivoContado) {
+            if (item instanceof SalidaEfectivoContado) {
                 await SalidaEfectivoContadoOrm.create({
-                    id: sal.id,
-                    medioTransferenciaId: sal.medioTransferencia?.id
+                    id: item.id,
+                    medioTransferenciaId: item.medioTransferencia?.id
                 }, { transaction });
             }
-            else if (sal instanceof SalidaEfectivoCredito) {
+            else if (item instanceof SalidaEfectivoCredito) {
                 await SalidaEfectivoCreditoOrm.create({
-                    id: sal.id,
-                    tasaInteresDiario: sal.tasaInteresDiario
+                    id: item.id,
+                    tasaInteresDiario: item.tasaInteresDiario
                 }, { transaction });
                 
-                if (sal.cuotas.length) {
+                if (item.cuotas.length) {
                     await SalidaEfectivoCuotaOrm.bulkCreate(
-                        sal.cuotas.map(cuota => ({
-                            id: cuota.id,
-                            salidaEfectivoCreditoId: sal.id,
+                        item.cuotas.map(cuota => ({
+                            salidaEfectivoCreditoId: item.id,
                             numero: cuota.numero,
                             fechaInicio: cuota.fechaInicio,
                             fechaVencimiento: cuota.fechaVencimiento,
@@ -59,18 +62,17 @@ export class SalidaEfectivoService {
                     );
                 }
             }
-            else if (sal instanceof NotaTransaccionSalidaCredito) {
+            else if (item instanceof NotaTransaccionSalidaCredito) {
                 await NtsCreditoOrm.create({
-                    id: sal.id,
-                    notaTransaccionSalidaId: sal.documentoFuente?.id,
-                    tasaInteresDiario: sal.tasaInteresDiario
+                    id: item.id,
+                    notaTransaccionSalidaId: item.documentoFuente?.id,
+                    tasaInteresDiario: item.tasaInteresDiario
                 }, { transaction });
                 
-                if (sal.cuotas.length) {
+                if (item.cuotas.length) {
                     await NtsCuotaOrm.bulkCreate(
-                        sal.cuotas.map(cuota => ({
-                            id: cuota.id,
-                            ntsCreditoId: sal.id,
+                        item.cuotas.map(cuota => ({
+                            ntsCreditoId: item.id,
                             numero: cuota.numero,
                             fechaInicio: cuota.fechaInicio,
                             fechaVencimiento: cuota.fechaVencimiento,

@@ -1,7 +1,6 @@
 import { DocumentoFuente, Nota } from '@confixcell/modelos';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { DestroyOptions, FindOptions, Transaction, UpdateOptions } from 'sequelize';
 import { DocumentoFuenteOrm } from 'src/infrastructure/entities/DocumentosFuente/DocumentoFuenteOrm';
 import { NotaOrm } from 'src/infrastructure/entities/DocumentosFuente/Nota/NotaOrm';
 import { ERROR } from 'src/utils/constants';
@@ -20,9 +19,14 @@ export class NotaService {
     async getCollectionByDocumentoUuid( s: SessionData, documentoFuente: DocumentoFuente )
     {
         const data = await this.notaOrm.findAll({
-            where: {
-                documentoFuenteId: documentoFuente.id
-            },
+            include: [
+                {
+                    model: DocumentoFuenteOrm,
+                    where: {
+                        uuid: documentoFuente.uuid
+                    }
+                }
+            ],
             transaction: s.transaction
         });
 

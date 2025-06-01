@@ -14,26 +14,32 @@ export class SalidaProduccionService {
     async executeCreateCollection( s: SessionData, salidasProduccion: SalidaProduccion[] )
     {
         const transaction = s.transaction;
-        const nvSalidasProduccionServicioReparacion = salidasProduccion.filter( sal => sal instanceof NotaVentaSalidaProduccionServicioReparacion );
+        const salidasServicioReparacion = salidasProduccion.filter( sal => sal instanceof NotaVentaSalidaProduccionServicioReparacion );
+        const recordItems: Record<string, NotaVentaSalidaProduccionServicioReparacion> = {};
+        salidasServicioReparacion.forEach( sal => {
+            if ( sal.uuid ) recordItems[sal.uuid] = sal;
+        } );
 
-        if ( nvSalidasProduccionServicioReparacion.length ) {
-            await SalidaProduccionOrm.bulkCreate(
-                nvSalidasProduccionServicioReparacion.map( sal => ({
-                    id: sal.id,
+        if ( salidasServicioReparacion.length ) {
+            const orms = await SalidaProduccionOrm.bulkCreate(
+                salidasServicioReparacion.map( sal => ({
                     documentoFuenteId: sal.documentoFuente?.id,
                     importePrecioNeto: sal.importePrecioNeto
                 }) ),
                 { transaction: transaction }
             );
+
+            orms.forEach( orm => recordItems[orm.uuid].set({...orm.get()}).setRelation() )
+
             await SalidaProduccionServicioOrm.bulkCreate(
-                nvSalidasProduccionServicioReparacion.map( sal => ({
+                salidasServicioReparacion.map( sal => ({
                     id: sal.id,
                     servicioUuid: sal.servicio?.uuid,
                 }),
                 { transaction: transaction }
             ) )
             await NvServicioReparacionOrm.bulkCreate(
-                nvSalidasProduccionServicioReparacion.map( sal => ({
+                salidasServicioReparacion.map( sal => ({
                     id: sal.id,
                     notaVentaId: sal.documentoFuente?.id,
                     pantallaModeloUuid: sal.pantallaModelo?.uuid,
@@ -45,11 +51,10 @@ export class SalidaProduccionService {
                 { transaction: transaction }
             )
 
-            const recursosBienConsumo = nvSalidasProduccionServicioReparacion.flatMap( sal => sal.recursosBienConsumo );
+            const recursosBienConsumo = salidasServicioReparacion.flatMap( sal => sal.recursosBienConsumo );
             if ( recursosBienConsumo.length ) {
                 await NvServicioReparacionRecursoBienConsumoOrm.bulkCreate(
                     recursosBienConsumo.map( recurso => ({
-                        id: recurso.id,
                         uuid: recurso.uuid,
                         nvServicioReparacionId: recurso.salidaProduccion?.id,
                         almacenUuid: recurso.almacen?.uuid,
@@ -62,11 +67,10 @@ export class SalidaProduccionService {
                 ) )
             }
 
-            const recursosServicio = nvSalidasProduccionServicioReparacion.flatMap( sal => sal.recursosServicio );
+            const recursosServicio = salidasServicioReparacion.flatMap( sal => sal.recursosServicio );
             if ( recursosServicio.length ) {
                 await NvServicioReparacionRecursoServicioOrm.bulkCreate(
                     recursosServicio.map( recurso => ({
-                        id: recurso.id,
                         uuid: recurso.uuid,
                         nvServicioReparacionId: recurso.salidaProduccion?.id,
                         nvCategoriaReparacionId: recurso.categoriaReparacion?.id,

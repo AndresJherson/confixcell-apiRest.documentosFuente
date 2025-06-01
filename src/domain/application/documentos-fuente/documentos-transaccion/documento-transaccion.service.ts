@@ -56,23 +56,21 @@ export class DocumentoTransaccionService {
     }
 
 
-    async executeCreateCollection( s: SessionData, documentosTransaccion: DocumentoTransaccion[] )
+    async executeCreateCollection( s: SessionData, items: DocumentoTransaccion[], withSupertype: boolean = true )
     {
-        await this.documentoFuenteService.executeCreateCollection( s, documentosTransaccion );
+        if ( withSupertype )
+            await this.documentoFuenteService.executeCreateCollection( s, items );
 
-        await DocumentoTransaccionOrm.bulkCreate( documentosTransaccion.map( doc => ({
-            id: doc.id,
-            fechaCreacion: doc.fechaCreacion,
-            fechaActualizacion: doc.fechaActualizacion,
-            concepto: doc.concepto
+        await DocumentoTransaccionOrm.bulkCreate( items.map( item => ({
+            id: item.id
         }) ), {
             transaction: s.transaction
         } );
 
-        await this.documentoEntradaEfectivoService.executeCreateCollection( s, documentosTransaccion.flatMap( doc => doc.docsEntradaEfectivo ) );
-        await this.documentoEntradaBienConsumoService.executeCreateCollection( s, documentosTransaccion.flatMap( doc => doc.docsEntradaBienConsumo ) );
-        await this.documentoSalidaEfectivoService.executeCreateCollection( s, documentosTransaccion.flatMap( doc => doc.docsSalidaEfectivo ) );
-        await this.documentoSalidaBienConsumoService.executeCreateCollection( s, documentosTransaccion.flatMap( doc => doc.docsSalidaBienConsumo ) );
+        await this.documentoEntradaEfectivoService.executeCreateCollection( s, items.flatMap( item => item.docsEntradaEfectivo ) );
+        await this.documentoEntradaBienConsumoService.executeCreateCollection( s, items.flatMap( item => item.docsEntradaBienConsumo ) );
+        await this.documentoSalidaEfectivoService.executeCreateCollection( s, items.flatMap( item => item.docsSalidaEfectivo ) );
+        await this.documentoSalidaBienConsumoService.executeCreateCollection( s, items.flatMap( item => item.docsSalidaBienConsumo ) );
     }
 
 
