@@ -60,7 +60,7 @@ export class NvPrioridadService {
     async update( s: SessionData, item: NotaVentaPrioridad )
     {
         const [af1] = await this.nvPrioridadOrm.update({
-            nombre: item.nombre
+            nombre: item.nombre ?? null as any
         }, {
             transaction: s.transaction,
             where: {

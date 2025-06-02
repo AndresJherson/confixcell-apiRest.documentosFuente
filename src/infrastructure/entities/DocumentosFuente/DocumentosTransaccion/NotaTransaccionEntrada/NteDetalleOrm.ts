@@ -4,7 +4,7 @@ import { NotaTransaccionEntradaOrm } from './NotaTransaccionEntradaOrm';
 @Table({ tableName: 'nte_detalle' })
 export class NteDetalleOrm extends Model<NteDetalleOrm, Partial<NteDetalleOrm>> 
 {
-    @Column({ type: DataType.INTEGER, primaryKey: true })
+    @Column({ type: DataType.INTEGER, primaryKey: true, autoIncrement: true })
     declare id: number;
 
     @Column({ type: DataType.STRING(50), allowNull: false, unique: true })

@@ -5,7 +5,8 @@ export class MedioTransferenciaOrm extends Model<MedioTransferenciaOrm, Partial<
     @Column({
         type: DataType.INTEGER,
         primaryKey: true,
-        allowNull: false
+        allowNull: false,
+        autoIncrement: true
     })
     declare id: number;
 

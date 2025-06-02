@@ -398,10 +398,10 @@ export class NotaVentaService {
             .procesarInformacion();
     
             await DocumentoFuenteOrm.update({
-                concepto: item.concepto,
+                concepto: item.concepto ?? null as any,
                 importeNeto: item.importeNeto,
-                usuarioUuid: item.usuario?.uuid,
-                fechaActualizacion: item.fechaActualizacion
+                usuarioUuid: item.usuario?.uuid ?? null as any,
+                fechaActualizacion: item.fechaActualizacion ?? null as any
             }, {
                 transaction: s.transaction,
                 where: {
@@ -522,14 +522,14 @@ export class NotaVentaService {
 
 
             await DocumentoFuenteOrm.update({
-                codigoSerie: item.codigoSerie,
-                codigoNumero: item.codigoNumero,
-                fechaEmision: item.fechaEmision,
-                fechaAnulacion: item.fechaAnulacion,
-                concepto: item.concepto,
+                codigoSerie: item.codigoSerie ?? null as any,
+                codigoNumero: item.codigoNumero ?? null as any,
+                fechaEmision: item.fechaEmision ?? null as any,
+                fechaAnulacion: item.fechaAnulacion ?? null as any,
+                concepto: item.concepto ?? null as any,
                 importeNeto: item.importeNeto,
-                usuarioUuid: item.usuario?.uuid,
-                fechaActualizacion: item.fechaActualizacion
+                usuarioUuid: item.usuario?.uuid ?? null as any,
+                fechaActualizacion: item.fechaActualizacion ?? null as any
             }, {
                 transaction: s.transaction,
                 where: {
@@ -554,9 +554,9 @@ export class NotaVentaService {
         await this.movimientoRecursoService.verifyUuidReferences( s, item2validate.movimientos.map( mov => mov.uuid ).filter( uuid => uuid !== undefined ) );
         
         const [af1] = await DocumentoFuenteOrm.update({
-            fechaAnulacion: item.fechaAnulacion,
-            fechaActualizacion: item.fechaActualizacion,
-            usuarioUuid: s.usuarioSession.uuid,
+            fechaAnulacion: item.fechaAnulacion ?? null as any,
+            fechaActualizacion: item.fechaActualizacion ?? null as any,
+            usuarioUuid: s.usuarioSession.uuid ?? null as any
         }, {
             transaction: s.transaction,
             where: {

@@ -1,7 +1,6 @@
 import { Prop, Usuario } from '@confixcell/modelos';
-import { CallHandler, ExecutionContext, Inject, Injectable, InternalServerErrorException, NestInterceptor } from '@nestjs/common';
-import { ClientNats } from '@nestjs/microservices';
-import { Request, Response } from 'express';
+import { CallHandler, ExecutionContext, Injectable, InternalServerErrorException, Logger, NestInterceptor } from '@nestjs/common';
+import { Request } from 'express';
 import { catchError, from, map, Observable, switchMap, throwError } from 'rxjs';
 import { ConectorService } from 'src/infrastructure/services/conector.service';
 import { SessionData } from 'src/utils/interfaces';
@@ -11,7 +10,6 @@ export class TransactionInterceptor implements NestInterceptor {
 
     constructor(
         private conectorService: ConectorService,
-        @Inject('NATS') private clientNats: ClientNats
     )
     {}
 
@@ -41,7 +39,11 @@ export class TransactionInterceptor implements NestInterceptor {
                         from( t.commit() ).pipe(
                             switchMap(() => {
                                 const postCommitEvents = sessionData.postCommitEvents;
-                                return from(Promise.all( postCommitEvents.map(fn => fn()) )).pipe(
+                                return from(Promise.all(
+                                    postCommitEvents.map(fn => 
+                                        fn().catch( error => Logger.error(error) )
+                                    )
+                                )).pipe(
                                     map(() => response)
                                 )
                             })

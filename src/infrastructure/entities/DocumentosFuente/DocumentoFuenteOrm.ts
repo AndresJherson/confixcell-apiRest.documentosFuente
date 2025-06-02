@@ -20,7 +20,8 @@ export class DocumentoFuenteOrm extends Model<DocumentoFuenteOrm, Partial<Docume
     @Column({
         type: DataType.INTEGER,
         primaryKey: true,
-        allowNull: false
+        allowNull: false,
+        autoIncrement: true
     })
     declare id: number;
     

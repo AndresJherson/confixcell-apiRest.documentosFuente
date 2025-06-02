@@ -59,7 +59,7 @@ export class ComprobanteTipoService {
     async update( s: SessionData, item: ComprobanteTipo )
     {
         const [af1] = await this.comprobanteTipoOrm.update({
-            nombre: item.nombre
+            nombre: item.nombre ?? null as any
         }, {
             transaction: s.transaction,
             where: {

@@ -61,7 +61,7 @@ export class LiquidacionTipoService {
     async update( s: SessionData, item: LiquidacionTipo )
     {
         const [af1] = await this.liquidacionTipoOrm.update({
-            nombre: item.nombre
+            nombre: item.nombre ?? null as any
         }, {
             transaction: s.transaction,
             where: {

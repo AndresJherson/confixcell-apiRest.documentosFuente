@@ -7,7 +7,8 @@ export class NotaOrm extends Model<NotaOrm, Partial<NotaOrm>> {
     @Column({
         type: DataType.INTEGER,
         primaryKey: true,
-        allowNull: false
+        allowNull: false,
+        autoIncrement: true
     })
     declare id: number;
 

@@ -11,7 +11,8 @@ export class SalidaBienConsumoOrm extends Model<SalidaBienConsumoOrm, Partial<Sa
     @Column({
         type: DataType.INTEGER,
         primaryKey: true,
-        allowNull: false
+        allowNull: false,
+        autoIncrement: true
     })
     declare id: number;
 

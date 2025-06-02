@@ -4,7 +4,7 @@ import { NotaTransaccionSalidaOrm } from './NotaTransaccionSalidaOrm';
 @Table({ tableName: 'nts_detalle' })
 export class NtsDetalleOrm extends Model<NtsDetalleOrm, Partial<NtsDetalleOrm>> 
 {
-    @Column({ type: DataType.INTEGER, primaryKey: true })
+    @Column({ type: DataType.INTEGER, primaryKey: true, autoIncrement: true })
     declare id: number;
 
     @Column({ type: DataType.STRING(50), allowNull: false, unique: true })

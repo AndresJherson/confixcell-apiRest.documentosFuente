@@ -4,7 +4,7 @@ import { NtsCreditoOrm } from './NtsCreditoOrm';
 @Table({ tableName: 'nts_cuota' })
 export class NtsCuotaOrm extends Model<NtsCuotaOrm, Partial<NtsCuotaOrm>> 
 {
-    @Column({ type: DataType.INTEGER, primaryKey: true })
+    @Column({ type: DataType.INTEGER, primaryKey: true, autoIncrement: true })
     declare id: number;
 
     @Column({ type: DataType.STRING(50), allowNull: false, unique: true })

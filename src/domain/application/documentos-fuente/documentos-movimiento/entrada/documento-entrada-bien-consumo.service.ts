@@ -96,6 +96,7 @@ export class DocumentoEntradaBienConsumoService implements OnModuleInit {
         item.set({
             uuid: v4(),
             codigoSerie: `MOV${dateTimeEmision.toFormat( 'yyyy' )}`,
+            usuario: s.usuarioSession,
             entradas: item.entradas.map( ent => ent.set({
                 uuid: v4()
             }) )
@@ -128,8 +129,9 @@ export class DocumentoEntradaBienConsumoService implements OnModuleInit {
         await this.movimientoRecursoService.verifyUuidReferences( s, uuidsMovimientos )
 
         const [af1] = await DocumentoFuenteOrm.update({
-            fechaAnulacion: item.fechaAnulacion,
-            fechaActualizacion: item.fechaActualizacion
+            fechaAnulacion: item.fechaAnulacion ?? null as any,
+            fechaActualizacion: item.fechaActualizacion ?? null as any,
+            usuarioUuid: s.usuarioSession.uuid ?? null as any
         }, {
             transaction: s.transaction,
             where: {

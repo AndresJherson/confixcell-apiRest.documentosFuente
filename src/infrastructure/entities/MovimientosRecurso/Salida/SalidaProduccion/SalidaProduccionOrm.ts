@@ -5,7 +5,7 @@ import { DocumentoFuenteOrm } from 'src/infrastructure/entities/DocumentosFuente
 @Table({ tableName: 'salida_produccion' })
 export class SalidaProduccionOrm extends Model<SalidaProduccionOrm, Partial<SalidaProduccionOrm>> 
 {
-    @Column({ type: DataType.INTEGER, primaryKey: true })
+    @Column({ type: DataType.INTEGER, primaryKey: true, autoIncrement: true })
     declare id: number;
 
     @Column({ type: DataType.STRING(50), allowNull: false, unique: true })

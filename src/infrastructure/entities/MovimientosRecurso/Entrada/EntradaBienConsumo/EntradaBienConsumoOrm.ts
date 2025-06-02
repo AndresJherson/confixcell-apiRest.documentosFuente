@@ -9,7 +9,8 @@ export class EntradaBienConsumoOrm extends Model<EntradaBienConsumoOrm, Partial<
     @Column({
         type: DataType.INTEGER,
         primaryKey: true,
-        allowNull: false
+        allowNull: false,
+        autoIncrement: true
     })
     declare id: number;
 

@@ -4,7 +4,7 @@ import { NteCreditoOrm } from './NteCreditoOrm';
 @Table({ tableName: 'nte_cuota' })
 export class NteCuotaOrm extends Model<NteCuotaOrm, Partial<NteCuotaOrm>> 
 {
-    @Column({ type: DataType.INTEGER, primaryKey: true })
+    @Column({ type: DataType.INTEGER, primaryKey: true, autoIncrement: true })
     declare id: number;
 
     @Column({ type: DataType.STRING(50), allowNull: false, unique: true })

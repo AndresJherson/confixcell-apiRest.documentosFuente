@@ -61,7 +61,7 @@ export class NvCategoriaReparacionService {
     async update( s: SessionData, item: NotaVentaCategoriaReparacion )
     {
         const [af1] = await this.nvCategoriaReparacionOrm.update({
-            nombre: item.nombre
+            nombre: item.nombre ?? null as any
         }, {
             transaction: s.transaction,
             where: {

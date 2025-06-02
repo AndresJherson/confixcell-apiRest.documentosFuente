@@ -72,22 +72,6 @@ export class EntradaBienConsumoService {
     }
 
 
-    async getRecordByUuids( s: SessionData, uuids: number[] )
-    {
-        return await this.conectorService.executeQuery({
-            target: EntradaBienConsumo.initialize,
-            transaction: s.transaction,
-            query: `
-                ${this.query}
-                where cte_entrada_bien_consumo.uuid ${!uuids.length ? ' is null ' : ' in (:uuids) '}
-            `,
-            parameters: {
-                uuids: !uuids.length ? null : uuids
-            }
-        });
-    }
-
-
     query = `
 select cte_entrada_bien_consumo.json
 from (

@@ -5,7 +5,8 @@ export class LiquidacionTipoOrm extends Model<LiquidacionTipoOrm, Partial<Liquid
     
     @Column({ 
         type: DataType.INTEGER, 
-        primaryKey: true 
+        primaryKey: true,
+        autoIncrement: true
     })
     declare id: number;
 

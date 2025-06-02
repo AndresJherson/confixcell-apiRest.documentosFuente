@@ -20,6 +20,9 @@ import { LiquidacionTipoController } from './controllers/documentos-fuente/docum
 import { IntegridadController } from './controllers/integridad/integridad.controller';
 import { TransactionInterceptor } from './interceptors/transaction.interceptor';
 import { InfrastructureModule } from 'src/infrastructure/infrastructure.module';
+import { EntradaBienConsumoController } from './controllers/movimientos-recurso/entrada/entrada-bien-consumo.controller';
+import { SalidaBienConsumoController } from './controllers/movimientos-recurso/salida/salida-bien-consumo.controller';
+import { DbPresetController } from './controllers/preset/db-preset.controller';
 
 @Module({
     imports: [
@@ -44,7 +47,10 @@ import { InfrastructureModule } from 'src/infrastructure/infrastructure.module';
         NotaController,
         MedioTransferenciaController,
         LiquidacionTipoController,
-        IntegridadController
+        IntegridadController,
+        EntradaBienConsumoController,
+        SalidaBienConsumoController,
+        DbPresetController
     ],
     providers: [
         TransactionInterceptor

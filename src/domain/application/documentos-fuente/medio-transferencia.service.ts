@@ -61,7 +61,7 @@ export class MedioTransferenciaService {
     async update( s: SessionData, item: MedioTransferencia )
     {
         const [af1] = await this.medioTransferenciaOrm.update({
-            nombre: item.nombre
+            nombre: item.nombre ?? null as any
         }, {
             transaction: s.transaction,
             where: {

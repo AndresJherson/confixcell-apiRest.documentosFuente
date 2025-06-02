@@ -4,7 +4,7 @@ import { NvServicioReparacionOrm } from './NvServicioReparacionOrm';
 @Table({ tableName: 'nv_servicio_reparacion_recurso_bien_consumo' })
 export class NvServicioReparacionRecursoBienConsumoOrm extends Model<NvServicioReparacionRecursoBienConsumoOrm, Partial<NvServicioReparacionRecursoBienConsumoOrm>> 
 {
-    @Column({ type: DataType.INTEGER, primaryKey: true })
+    @Column({ type: DataType.INTEGER, primaryKey: true, autoIncrement: true })
     declare id: number;
 
     @Column({ type: DataType.STRING(50), allowNull: false, unique: true })

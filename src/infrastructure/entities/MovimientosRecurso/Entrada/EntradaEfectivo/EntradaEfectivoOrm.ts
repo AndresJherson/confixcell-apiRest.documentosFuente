@@ -10,7 +10,8 @@ export class EntradaEfectivoOrm extends Model<EntradaEfectivoOrm, Partial<Entrad
     @Column({
         type: DataType.INTEGER,
         primaryKey: true,
-        allowNull: false
+        allowNull: false,
+        autoIncrement: true
     })
     declare id: number;
 

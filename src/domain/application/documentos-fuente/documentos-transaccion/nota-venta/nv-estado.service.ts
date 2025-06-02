@@ -60,7 +60,7 @@ export class NvEstadoService {
     async update( s: SessionData, item: NotaVentaEstado )
     {
         const [af1] = await this.nvEstadoOrm.update({
-            nombre: item.nombre
+            nombre: item.nombre ?? null as any
         }, {
             transaction: s.transaction,
             where: {
